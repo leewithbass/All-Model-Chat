@@ -23,6 +23,7 @@ const App: React.FC = () => {
       messages,
       isLoading,
       loadingSessionIds,
+      generatingTitleSessionIds,
       currentChatSettings,
       commandedInput,
       setCommandedInput,
@@ -284,6 +285,7 @@ const App: React.FC = () => {
         sessions={savedSessions}
         activeSessionId={activeSessionId}
         loadingSessionIds={loadingSessionIds}
+        generatingTitleSessionIds={generatingTitleSessionIds}
         onSelectSession={(id) => loadChatSession(id, savedSessions)}
         onNewChat={() => startNewChat()}
         onDeleteSession={handleDeleteChatHistorySession}

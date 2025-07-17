@@ -20,6 +20,7 @@ export const useChat = (appSettings: AppSettings, language: 'en' | 'zh') => {
 
     // State for managing concurrent generation jobs
     const [loadingSessionIds, setLoadingSessionIds] = useState(new Set<string>());
+    const [generatingTitleSessionIds, setGeneratingTitleSessionIds] = useState(new Set<string>());
     const activeJobs = useRef(new Map<string, AbortController>());
     
     // File state
@@ -278,11 +279,17 @@ export const useChat = (appSettings: AppSettings, language: 'en' | 'zh') => {
         const { id: sessionId, messages } = session;
         if (messages.length < 2) return;
         
+        setGeneratingTitleSessionIds(prev => new Set(prev).add(sessionId));
         logService.info(`Auto-generating title for session ${sessionId}`);
 
         const keyResult = getKeyForRequest(appSettings, session.settings);
         if ('error' in keyResult) {
             logService.error(`Could not generate title for session ${sessionId}: ${keyResult.error}`);
+            setGeneratingTitleSessionIds(prev => {
+                const next = new Set(prev);
+                next.delete(sessionId);
+                return next;
+            });
             return;
         }
 
@@ -308,6 +315,12 @@ export const useChat = (appSettings: AppSettings, language: 'en' | 'zh') => {
 
         } catch (error) {
             logService.error(`Failed to auto-generate title for session ${sessionId}`, { error });
+        } finally {
+            setGeneratingTitleSessionIds(prev => {
+                const next = new Set(prev);
+                next.delete(sessionId);
+                return next;
+            });
         }
     }, [appSettings, updateAndPersistSessions, language]);
 
@@ -317,14 +330,15 @@ export const useChat = (appSettings: AppSettings, language: 'en' | 'zh') => {
             activeChat &&
             activeChat.messages.length === 2 &&
             !isLoading &&
-            activeChat.title === 'New Chat'
+            activeChat.title === 'New Chat' &&
+            !generatingTitleSessionIds.has(activeChat.id)
         ) {
             const [userMessage, modelMessage] = activeChat.messages;
             if (userMessage.role === 'user' && modelMessage.role === 'model' && !modelMessage.isLoading) {
                 generateTitleForSession(activeChat);
             }
         }
-    }, [messages, isLoading, appSettings.isAutoTitleEnabled, activeChat, generateTitleForSession]);
+    }, [messages, isLoading, appSettings.isAutoTitleEnabled, activeChat, generateTitleForSession, generatingTitleSessionIds]);
 
     const handleTogglePinCurrentSession = useCallback(() => {
         if (activeSessionId) {
@@ -336,6 +350,7 @@ export const useChat = (appSettings: AppSettings, language: 'en' | 'zh') => {
         messages,
         isLoading,
         loadingSessionIds,
+        generatingTitleSessionIds,
         currentChatSettings,
         editingMessageId,
         setEditingMessageId,
