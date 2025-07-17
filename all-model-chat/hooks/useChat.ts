@@ -426,6 +426,18 @@ export const useChat = (appSettings: AppSettings, language: 'en' | 'zh') => {
                     // Update scenarios
                     scenarioHandler.handleSaveAllScenarios(importedData.scenarios);
 
+                    // Apply API configuration from imported settings
+                    // This is a temporary solution to apply API settings without full state management
+                    // In a more robust implementation, this would be handled by a global state manager
+                    const { apiKey, apiProxyUrl, useCustomApiConfig } = importedData.appSettings;
+                    if (useCustomApiConfig && apiKey) {
+                        // Store API settings in localStorage for persistence
+                        localStorage.setItem('importedApiKey', apiKey);
+                        localStorage.setItem('importedApiProxyUrl', apiProxyUrl || '');
+                        localStorage.setItem('importedUseCustomApiConfig', 'true');
+                        logService.info('API configuration imported and stored for next session');
+                    }
+
                     // Optionally, load the latest active session or start a new chat after import
                     if (importedData.chatSessions.length > 0) {
                         historyHandler.loadChatSession(importedData.chatSessions[0].id, importedData.chatSessions);
