@@ -81,6 +81,8 @@ const App: React.FC = () => {
       toggleGoogleSearch,
       toggleCodeExecution,
       toggleUrlContext,
+      handleExportAllData,
+      handleImportAllData,
   } = useChat(appSettings, language);
 
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
@@ -324,6 +326,8 @@ const App: React.FC = () => {
           isCanvasPromptActive={isCanvasPromptActive}
           t={t}
           isKeyLocked={!!currentChatSettings.lockedApiKey}
+          onExportData={handleExportAllData}
+          onImportData={handleImportAllData}
         />
         {modelsLoadingError && (
           <div className="p-2 bg-[var(--theme-bg-danger)] text-[var(--theme-text-danger)] text-center text-xs flex-shrink-0">{modelsLoadingError}</div>

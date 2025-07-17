@@ -237,6 +237,10 @@ export const translations = {
     headerModelSelectorTooltip_action: { en: `Click to change, or press 'Tab' to cycle`, zh: `点击更改，或按 'Tab' 键循环切换` },
     headerModelAriaLabel_current: { en: 'Current AI Model', zh: '当前 AI 模型' },
     headerModelAriaLabel_action: { en: `Click to change model`, zh: `点击更改模型` },
+    exportData_aria: { en: 'Export all data', zh: '导出所有数据' },
+    exportData_title: { en: 'Export Data', zh: '导出数据' },
+    importData_aria: { en: 'Import all data', zh: '导入所有数据' },
+    importData_title: { en: 'Import Data', zh: '导入数据' },
 };
 
 export const getTranslator = (lang: 'en' | 'zh') => (key: keyof typeof translations, fallback?: string): string => {

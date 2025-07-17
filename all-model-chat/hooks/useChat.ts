@@ -9,6 +9,7 @@ import { useMessageHandler } from './useMessageHandler';
 import { applyImageCachePolicy, generateUniqueId, getKeyForRequest, logService } from '../utils/appUtils';
 import { CHAT_HISTORY_SESSIONS_KEY } from '../constants/appConstants';
 import { geminiServiceInstance } from '../services/geminiService';
+import { exportAllData, importAllData, validateImportData } from '../utils/exportImportUtils';
 
 export const useChat = (appSettings: AppSettings, language: 'en' | 'zh') => {
     // 1. Core application state, now managed centrally in the main hook
@@ -393,5 +394,37 @@ export const useChat = (appSettings: AppSettings, language: 'en' | 'zh') => {
         toggleGoogleSearch,
         toggleCodeExecution,
         toggleUrlContext,
+        handleExportAllData: () => exportAllData(appSettings, savedSessions, scenarioHandler.savedScenarios),
+        handleImportAllData: async (file: File) => {
+            try {
+                const importedData = await importAllData(file);
+                if (validateImportData(importedData)) {
+                    // Apply imported settings
+                    // Note: We don't directly set appSettings here, as appSettings is a prop.
+                    // Instead, we'd typically trigger an update through a parent component's state or a global context.
+                    // For now, we'll log it and assume a mechanism to apply it globally exists or will be added.
+                    logService.info('Imported App Settings:', importedData.appSettings);
+                    
+                    // Update chat sessions
+                    updateAndPersistSessions(() => importedData.chatSessions);
+                    
+                    // Update scenarios
+                    scenarioHandler.handleSaveAllScenarios(importedData.scenarios);
+
+                    // Optionally, load the latest active session or start a new chat after import
+                    if (importedData.chatSessions.length > 0) {
+                        historyHandler.loadChatSession(importedData.chatSessions[0].id, importedData.chatSessions);
+                    } else {
+                        historyHandler.startNewChat();
+                    }
+                    logService.info('Data import successful!');
+                } else {
+                    throw new Error('Invalid imported data structure.');
+                }
+            } catch (error) {
+                logService.error('Error importing data:', error);
+                setAppFileError(`Failed to import data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
+        },
     };
 };

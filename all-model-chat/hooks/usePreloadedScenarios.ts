@@ -27,9 +27,14 @@ export const usePreloadedScenarios = ({ startNewChat, updateAndPersistSessions }
         } catch (error) { console.error("Error loading preloaded scenarios:", error); }
     }, []);
     
-    const handleSaveAllScenarios = (updatedScenarios: SavedScenario[]) => { 
-        setSavedScenarios(updatedScenarios); 
-        localStorage.setItem(PRELOADED_SCENARIO_KEY, JSON.stringify(updatedScenarios)); 
+    const handleSaveAllScenarios = (updatedScenarios: SavedScenario[]) => {
+        setSavedScenarios(updatedScenarios);
+        localStorage.setItem(PRELOADED_SCENARIO_KEY, JSON.stringify(updatedScenarios));
+    };
+
+    const setSavedScenariosState = (scenarios: SavedScenario[]) => {
+        setSavedScenarios(scenarios);
+        localStorage.setItem(PRELOADED_SCENARIO_KEY, JSON.stringify(scenarios));
     };
     
     const handleLoadPreloadedScenario = (scenarioToLoad: PreloadedMessage[]) => { 
@@ -95,6 +100,7 @@ export const usePreloadedScenarios = ({ startNewChat, updateAndPersistSessions }
 
     return {
         savedScenarios,
+        setSavedScenarios,
         handleSaveAllScenarios,
         handleLoadPreloadedScenario,
         handleExportPreloadedScenario,

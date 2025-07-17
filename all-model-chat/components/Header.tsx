@@ -1,19 +1,21 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { Settings, ChevronDown, Check, Loader2, Trash2, Pin, MessagesSquare, Menu, FilePlus2, Wand2, Lock } from 'lucide-react'; 
+import { Settings, ChevronDown, Check, Loader2, Trash2, Pin, MessagesSquare, Menu, FilePlus2, Wand2, Lock, Upload, Download } from 'lucide-react';
 import { ModelOption } from '../types';
 import { translations, getResponsiveValue } from '../utils/appUtils';
 
 interface HeaderProps {
   onNewChat: () => void; // Changed from onClearChat
-  onOpenSettingsModal: () => void; 
-  onOpenScenariosModal: () => void; 
+  onOpenSettingsModal: () => void;
+  onOpenScenariosModal: () => void;
   onToggleHistorySidebar: () => void;
+  onExportData: () => void;
+  onImportData: (file: File) => void;
   isLoading: boolean;
   currentModelName?: string;
   availableModels: ModelOption[];
   selectedModelId: string;
   onSelectModel: (modelId: string) => void;
-  isModelsLoading: boolean; 
+  isModelsLoading: boolean;
   isSwitchingModel: boolean;
   isHistorySidebarOpen: boolean;
   onLoadCanvasPrompt: () => void;
@@ -26,9 +28,11 @@ const MOBILE_BREAKPOINT = 640; // Tailwind's sm breakpoint
 
 export const Header: React.FC<HeaderProps> = ({
   onNewChat,
-  onOpenSettingsModal, 
+  onOpenSettingsModal,
   onOpenScenariosModal,
   onToggleHistorySidebar,
+  onExportData,
+  onImportData,
   isLoading,
   currentModelName,
   availableModels,
@@ -45,6 +49,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
   const modelSelectorRef = useRef<HTMLDivElement>(null);
   const [newChatShortcut, setNewChatShortcut] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [isModelNameOverflowing, setIsModelNameOverflowing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -214,7 +219,35 @@ export const Header: React.FC<HeaderProps> = ({
           <MessagesSquare size={getResponsiveValue(16, 18)} />
         </button>
         <button
-          onClick={onOpenSettingsModal} 
+          onClick={onExportData}
+          className="p-2 sm:p-2.5 bg-[var(--theme-bg-tertiary)] hover:bg-[var(--theme-bg-input)] text-[var(--theme-icon-settings)] rounded-lg shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--theme-bg-primary)] focus:ring-[var(--theme-border-focus)] flex items-center justify-center hover:scale-105 active:scale-100"
+          aria-label={t('exportData_aria')}
+          title={t('exportData_title')}
+        >
+          <Download size={getResponsiveValue(16, 18)} />
+        </button>
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={(e) => {
+            if (e.target.files?.[0]) {
+              onImportData(e.target.files[0]);
+              e.target.value = ''; // Allow re-selecting the same file
+            }
+          }}
+          className="hidden"
+          accept=".json"
+        />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="p-2 sm:p-2.5 bg-[var(--theme-bg-tertiary)] hover:bg-[var(--theme-bg-input)] text-[var(--theme-icon-settings)] rounded-lg shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--theme-bg-primary)] focus:ring-[var(--theme-border-focus)] flex items-center justify-center hover:scale-105 active:scale-100"
+          aria-label={t('importData_aria')}
+          title={t('importData_title')}
+        >
+          <Upload size={getResponsiveValue(16, 18)} />
+        </button>
+        <button
+          onClick={onOpenSettingsModal}
           className="p-2 sm:p-2.5 bg-[var(--theme-bg-tertiary)] hover:bg-[var(--theme-bg-input)] text-[var(--theme-icon-settings)] rounded-lg shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--theme-bg-primary)] focus:ring-[var(--theme-border-focus)] flex items-center justify-center hover:scale-105 active:scale-100"
           aria-label={t('settingsOpen_aria')}
           title={t('settingsOpen_title')}
