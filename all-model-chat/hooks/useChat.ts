@@ -11,7 +11,7 @@ import { CHAT_HISTORY_SESSIONS_KEY } from '../constants/appConstants';
 import { geminiServiceInstance } from '../services/geminiService';
 import { exportAllData, importAllData, validateImportData } from '../utils/exportImportUtils';
 
-export const useChat = (appSettings: AppSettings, language: 'en' | 'zh') => {
+export const useChat = (appSettings: AppSettings, setAppSettings: React.Dispatch<React.SetStateAction<AppSettings>>, language: 'en' | 'zh') => {
     // 1. Core application state, now managed centrally in the main hook
     const [savedSessions, setSavedSessions] = useState<SavedChatSession[]>([]);
     const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -414,37 +414,23 @@ export const useChat = (appSettings: AppSettings, language: 'en' | 'zh') => {
             try {
                 const importedData = await importAllData(file);
                 if (validateImportData(importedData)) {
-                    // Apply imported settings
-                    // Note: We don't directly set appSettings here, as appSettings is a prop.
-                    // Instead, we'd typically trigger an update through a parent component's state or a global context.
-                    // For now, we'll log it and assume a mechanism to apply it globally exists or will be added.
-                    logService.info('Imported App Settings:', importedData.appSettings);
-                    
-                    // Update chat sessions
+                    // Step 1: Apply and save the imported app settings directly.
+                    logService.info('Imported App Settings, applying directly:', importedData.appSettings);
+                    setAppSettings(importedData.appSettings);
+
+                    // Step 2: Update chat sessions.
                     updateAndPersistSessions(() => importedData.chatSessions);
                     
-                    // Update scenarios
+                    // Step 3: Update scenarios.
                     scenarioHandler.handleSaveAllScenarios(importedData.scenarios);
 
-                    // Apply API configuration from imported settings
-                    // This is a temporary solution to apply API settings without full state management
-                    // In a more robust implementation, this would be handled by a global state manager
-                    const { apiKey, apiProxyUrl, useCustomApiConfig } = importedData.appSettings;
-                    if (useCustomApiConfig && apiKey) {
-                        // Store API settings in localStorage for persistence
-                        localStorage.setItem('importedApiKey', apiKey);
-                        localStorage.setItem('importedApiProxyUrl', apiProxyUrl || '');
-                        localStorage.setItem('importedUseCustomApiConfig', 'true');
-                        logService.info('API configuration imported and stored for next session');
-                    }
-
-                    // Optionally, load the latest active session or start a new chat after import
+                    // Step 4: Load the most recent session to reflect the imported state.
                     if (importedData.chatSessions.length > 0) {
                         historyHandler.loadChatSession(importedData.chatSessions[0].id, importedData.chatSessions);
                     } else {
                         historyHandler.startNewChat();
                     }
-                    logService.info('Data import successful!');
+                    logService.info('Data import successful and applied!');
                 } else {
                     throw new Error('Invalid imported data structure.');
                 }

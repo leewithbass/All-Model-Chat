@@ -84,7 +84,7 @@ const App: React.FC = () => {
       toggleUrlContext,
       handleExportAllData,
       handleImportAllData,
-  } = useChat(appSettings, language);
+  } = useChat(appSettings, setAppSettings, language);
 
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
   const [isPreloadedMessagesModalOpen, setIsPreloadedMessagesModalOpen] = useState<boolean>(false);

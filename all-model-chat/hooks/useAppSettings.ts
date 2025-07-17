@@ -8,28 +8,7 @@ import { generateThemeCssVariables } from '../utils/appUtils';
 export const useAppSettings = () => {
     const [appSettings, setAppSettings] = useState<AppSettings>(() => {
         const stored = localStorage.getItem(APP_SETTINGS_KEY);
-        let settings = stored ? { ...DEFAULT_APP_SETTINGS, ...JSON.parse(stored) } : DEFAULT_APP_SETTINGS;
-        
-        // Check for imported API settings
-        const importedApiKey = localStorage.getItem('importedApiKey');
-        const importedApiProxyUrl = localStorage.getItem('importedApiProxyUrl');
-        const importedUseCustomApiConfig = localStorage.getItem('importedUseCustomApiConfig');
-        
-        if (importedUseCustomApiConfig === 'true' && importedApiKey) {
-            settings = {
-                ...settings,
-                apiKey: importedApiKey,
-                apiProxyUrl: importedApiProxyUrl || null,
-                useCustomApiConfig: true
-            };
-            
-            // Clean up imported settings after applying
-            localStorage.removeItem('importedApiKey');
-            localStorage.removeItem('importedApiProxyUrl');
-            localStorage.removeItem('importedUseCustomApiConfig');
-        }
-        
-        return settings;
+        return stored ? { ...DEFAULT_APP_SETTINGS, ...JSON.parse(stored) } : DEFAULT_APP_SETTINGS;
     });
 
     const [language, setLanguage] = useState<'en' | 'zh'>('en');
