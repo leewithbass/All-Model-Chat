@@ -13,8 +13,8 @@ const SUGGESTIONS_KEYS = [
   { titleKey: 'suggestion_ocr_title', descKey: 'suggestion_ocr_desc' },
 ];
 
-export const MessageList: React.FC<MessageListProps> = ({ 
-    messages, messagesEndRef, scrollContainerRef, onScrollContainerScroll, 
+export const MessageList: React.FC<Omit<MessageListProps, 'scrollContainerRef' | 'messagesEndRef'> & { scrollContainerRef: React.RefObject<HTMLDivElement | null>; messagesEndRef: React.RefObject<HTMLDivElement | null>; }> = ({
+    messages, messagesEndRef, scrollContainerRef, onScrollContainerScroll,
     onEditMessage, onDeleteMessage, onRetryMessage, showThoughts, themeColors, baseFontSize,
     expandCodeBlocksByDefault, onSuggestionClick, onTextToSpeech, ttsMessageId, t, language, themeId,
     showScrollToBottom, onScrollToBottom

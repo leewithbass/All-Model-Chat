@@ -8,7 +8,9 @@ interface DataManagementSectionProps {
   onOpenLogViewer: () => void;
   isInstallable: boolean;
   onInstallPwa: () => void;
-  t: (key: string) => string;
+  onImportSettings: (file: File) => void;
+  onExportSettings: () => void;
+  t: (key: any) => string;
 }
 
 export const DataManagementSection: React.FC<DataManagementSectionProps> = ({
@@ -17,12 +19,26 @@ export const DataManagementSection: React.FC<DataManagementSectionProps> = ({
   onOpenLogViewer,
   isInstallable,
   onInstallPwa,
+  onImportSettings,
+  onExportSettings,
   t,
 }) => {
   const iconSize = getResponsiveValue(14, 16);
   const buttonIconSize = getResponsiveValue(12, 14);
 
   const baseButtonClass = "px-3 sm:px-4 py-2 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--theme-bg-secondary)] flex items-center justify-center gap-2 text-sm font-medium w-full sm:w-auto";
+  const importInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleImportClick = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      onImportSettings(file);
+    }
+  };
 
   return (
     <div className="space-y-3 p-3 sm:p-4 border border-[var(--theme-border-secondary)] rounded-lg bg-[var(--theme-bg-secondary)]">
@@ -30,7 +46,7 @@ export const DataManagementSection: React.FC<DataManagementSectionProps> = ({
         <DatabaseZap size={iconSize} className="mr-2 text-[var(--theme-text-link)] opacity-80" />
         {t('settingsDataManagement')}
       </h3>
-      <div className="flex flex-col sm:flex-row flex-wrap gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         <button
           onClick={onClearHistory}
           type="button"
@@ -70,6 +86,33 @@ export const DataManagementSection: React.FC<DataManagementSectionProps> = ({
           <DownloadCloud size={buttonIconSize} />
           <span>{t('settingsInstallApp')}</span>
         </button>
+        <button
+            onClick={onExportSettings}
+            type="button"
+            className={`${baseButtonClass} bg-[var(--theme-bg-tertiary)] border border-transparent text-[var(--theme-text-tertiary)] hover:bg-[var(--theme-bg-input)] hover:text-[var(--theme-text-secondary)] focus:ring-[var(--theme-border-secondary)]`}
+            title="Export Settings"
+            aria-label="Export Settings"
+        >
+            <DownloadCloud size={buttonIconSize} />
+            <span>Export Settings</span>
+        </button>
+        <button
+            onClick={handleImportClick}
+            type="button"
+            className={`${baseButtonClass} bg-[var(--theme-bg-tertiary)] border border-transparent text-[var(--theme-text-tertiary)] hover:bg-[var(--theme-bg-input)] hover:text-[var(--theme-text-secondary)] focus:ring-[var(--theme-border-secondary)]`}
+            title="Import Settings"
+            aria-label="Import Settings"
+        >
+            <DownloadCloud size={buttonIconSize} />
+            <span>Import Settings</span>
+        </button>
+        <input
+            type="file"
+            ref={importInputRef}
+            onChange={handleFileChange}
+            className="hidden"
+            accept=".json"
+        />
       </div>
     </div>
   );

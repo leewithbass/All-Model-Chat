@@ -242,6 +242,17 @@ export const translations = {
     exportData_title: { en: 'Export Data', zh: '导出数据' },
     importData_aria: { en: 'Import all data', zh: '导入所有数据' },
     importData_title: { en: 'Import Data', zh: '导入数据' },
+
+    // ExportChatModal.tsx
+    exportChat_title: { en: 'Export Chat', zh: '导出聊天' },
+    exportChat_description: { en: 'Choose a format to export the current chat session.', zh: '选择格式以导出当前聊天会话。' },
+    exportChat_asPNG: { en: 'Export as PNG', zh: '导出为 PNG' },
+    exportChat_asHTML: { en: 'Export as HTML', zh: '导出为 HTML' },
+    exportChat_exporting: { en: 'Exporting...', zh: '导出中...' },
+
+    // Header.tsx new keys
+    header_setDefault_isDefault: { en: 'Default model for new chats', zh: '新对话的默认模型' },
+    header_setDefault_action: { en: 'Set as default model', zh: '设为默认模型' },
 };
 
 export const getTranslator = (lang: 'en' | 'zh') => (key: keyof typeof translations, fallback?: string): string => {

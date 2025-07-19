@@ -32,8 +32,8 @@ export const useChat = (appSettings: AppSettings, setAppSettings: React.Dispatch
     const [aspectRatio, setAspectRatio] = useState<string>('1:1');
     const [ttsMessageId, setTtsMessageId] = useState<string | null>(null);
     const [isSwitchingModel, setIsSwitchingModel] = useState<boolean>(false);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const messagesEndRef = useRef<HTMLDivElement | null>(null);
+    const scrollContainerRef = useRef<HTMLDivElement | null>(null);
     const userScrolledUp = useRef<boolean>(false);
     const [showScrollToBottom, setShowScrollToBottom] = useState<boolean>(false);
 

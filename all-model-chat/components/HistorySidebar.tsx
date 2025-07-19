@@ -17,6 +17,7 @@ interface HistorySidebarProps {
   onDeleteSession: (sessionId: string) => void;
   onRenameSession: (sessionId: string, newTitle: string) => void;
   onTogglePinSession: (sessionId: string) => void;
+  onOpenExportModal: () => void;
   themeColors: {
     bgPrimary: string;
     bgSecondary: string;
@@ -45,6 +46,7 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
   onDeleteSession,
   onRenameSession,
   onTogglePinSession,
+  onOpenExportModal,
   themeColors,
   t,
   language,
@@ -228,6 +230,7 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
                         <button onClick={() => { onTogglePinSession(session.id); setActiveMenu(null); }} className="w-full text-left px-3 py-1.5 text-sm text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] flex items-center gap-2">
                           {session.isPinned ? <PinOff size={14} /> : <Pin size={14} />} <span>{session.isPinned ? t('history_unpin') : t('history_pin')}</span>
                         </button>
+                        <button onClick={() => { onOpenExportModal(); setActiveMenu(null); }} className="w-full text-left px-3 py-1.5 text-sm text-[var(--theme-text-primary)] hover:bg-[var(--theme-bg-tertiary)] flex items-center gap-2"><Trash2 size={14} /> <span>Export</span></button>
                         <button onClick={() => { onDeleteSession(session.id); setActiveMenu(null); }} className="w-full text-left px-3 py-1.5 text-sm text-[var(--theme-icon-error)] hover:bg-[var(--theme-bg-danger)] hover:text-[var(--theme-text-danger)] flex items-center gap-2"><Trash2 size={14} /> <span>{t('history_delete')}</span></button>
                       </div>
                     )}

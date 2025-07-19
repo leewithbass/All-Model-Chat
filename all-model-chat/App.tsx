@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { Paperclip } from 'lucide-react';
-import { AppSettings, UploadedFile, ModelOption } from './types';
-import { DEFAULT_SYSTEM_INSTRUCTION, TAB_CYCLE_MODELS, CANVAS_ASSISTANT_SYSTEM_PROMPT } from './constants/appConstants';
+import { AppSettings } from './types';
+import { CANVAS_ASSISTANT_SYSTEM_PROMPT, DEFAULT_SYSTEM_INSTRUCTION } from './constants/appConstants';
 import { AVAILABLE_THEMES } from './constants/themeConstants';
 import { Header } from './components/Header';
 import { MessageList } from './components/MessageList';
@@ -9,11 +9,17 @@ import { ChatInput } from './components/ChatInput';
 import { HistorySidebar } from './components/HistorySidebar';
 import { useAppSettings } from './hooks/useAppSettings';
 import { useChat } from './hooks/useChat';
+import { useAppUI } from './hooks/useAppUI';
+import { useAppEvents } from './hooks/useAppEvents';
 import { getTranslator, getResponsiveValue } from './utils/appUtils';
 import { logService } from './services/logService';
 import { SettingsModal } from './components/SettingsModal';
 import { LogViewer } from './components/LogViewer';
 import { PreloadedMessagesModal } from './components/PreloadedMessagesModal';
+import { ExportChatModal } from './components/ExportChatModal';
+import html2canvas from 'html2canvas';
+import DOMPurify from 'dompurify';
+
 
 const App: React.FC = () => {
   const { appSettings, setAppSettings, currentTheme, language } = useAppSettings();
@@ -30,7 +36,6 @@ const App: React.FC = () => {
       selectedFiles,
       setSelectedFiles,
       editingMessageId,
-      setEditingMessageId,
       appFileError,
       isAppProcessingFile,
       savedSessions,
@@ -86,25 +91,53 @@ const App: React.FC = () => {
       handleImportAllData,
   } = useChat(appSettings, setAppSettings, language);
 
-  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
-  const [isPreloadedMessagesModalOpen, setIsPreloadedMessagesModalOpen] = useState<boolean>(false);
-  const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState<boolean>(window.innerWidth >= 768);
-  const [isLogViewerOpen, setIsLogViewerOpen] = useState<boolean>(false);
-  const [installPromptEvent, setInstallPromptEvent] = useState<any>(null);
-  const [isStandalone, setIsStandalone] = useState(window.matchMedia('(display-mode: standalone)').matches);
+  const {
+    isSettingsModalOpen,
+    setIsSettingsModalOpen,
+    isPreloadedMessagesModalOpen,
+    setIsPreloadedMessagesModalOpen,
+    isHistorySidebarOpen,
+    setIsHistorySidebarOpen,
+    isLogViewerOpen,
+    setIsLogViewerOpen,
+    handleTouchStart,
+    handleTouchEnd,
+  } = useAppUI();
+  
+  const {
+    installPromptEvent,
+    isStandalone,
+    handleInstallPwa,
+    handleExportSettings,
+    handleImportSettings,
+  } = useAppEvents({
+    appSettings,
+    setAppSettings,
+    savedSessions,
+    language,
+    startNewChat,
+    handleClearCurrentChat,
+    currentChatSettings,
+    handleSelectModelInHeader,
+    isSettingsModalOpen,
+    isPreloadedMessagesModalOpen,
+    setIsLogViewerOpen,
+  });
 
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportStatus, setExportStatus] = useState<'idle' | 'exporting'>('idle');
+
+
+  useEffect(() => {
+    logService.info('App initialized.');
+  }, []);
+  
   const handleSaveSettings = (newSettings: AppSettings) => {
-    // Save the new settings as the global default for subsequent new chats
     setAppSettings(newSettings);
   
-    // Also, apply the relevant behavioral settings to the current active chat session
-    // This provides immediate feedback for the user on settings changes.
     if (activeSessionId && setCurrentChatSettings) {
       setCurrentChatSettings(prevChatSettings => ({
         ...prevChatSettings,
-        // Apply generation-related settings from the modal.
-        // We explicitly DO NOT update modelId, lockedApiKey, or tool settings,
-        // as those are managed directly within the session context (header, file uploads, tool toggles).
         temperature: newSettings.temperature,
         topP: newSettings.topP,
         systemInstruction: newSettings.systemInstruction,
@@ -117,81 +150,17 @@ const App: React.FC = () => {
     setIsSettingsModalOpen(false);
   };
 
-  const touchStartRef = useRef({ x: 0, y: 0 });
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    const firstTouch = e.touches[0];
-    if (firstTouch) {
-        touchStartRef.current = { x: firstTouch.clientX, y: firstTouch.clientY };
-    }
-  }, []);
-
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-      const lastTouch = e.changedTouches[0];
-      if (!lastTouch) return;
-
-      const deltaX = lastTouch.clientX - touchStartRef.current.x;
-      const deltaY = lastTouch.clientY - touchStartRef.current.y;
-      const swipeThreshold = 50; // Minimum horizontal distance in pixels
-      const edgeThreshold = 40;  // Width of the left edge area for swipe-to-open gesture
-
-      // Ignore if the swipe is more vertical than horizontal
-      if (Math.abs(deltaX) < Math.abs(deltaY)) {
-          return;
-      }
-
-      // Swipe Right to Open
-      if (deltaX > swipeThreshold && !isHistorySidebarOpen && touchStartRef.current.x < edgeThreshold) {
-          setIsHistorySidebarOpen(true);
-      } 
-      // Swipe Left to Close
-      else if (deltaX < -swipeThreshold && isHistorySidebarOpen) {
-          setIsHistorySidebarOpen(false);
-      }
-  }, [isHistorySidebarOpen]);
-
-  useEffect(() => {
-    logService.info('App initialized.');
-  }, []);
-  
-  // PWA Installation Handlers
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (e: Event) => {
-        e.preventDefault();
-        logService.info('PWA install prompt available.');
-        setInstallPromptEvent(e);
-    };
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-  }, []);
-
-  useEffect(() => {
-      const handleAppInstalled = () => {
-          logService.info('PWA installed successfully.');
-          setInstallPromptEvent(null);
-          setIsStandalone(true);
-      };
-      window.addEventListener('appinstalled', handleAppInstalled);
-      return () => window.removeEventListener('appinstalled', handleAppInstalled);
-  }, []);
-
-  const handleInstallPwa = async () => {
-      if (!installPromptEvent) return;
-      
-      installPromptEvent.prompt();
-      const { outcome } = await installPromptEvent.userChoice;
-      logService.info(`PWA install prompt outcome: ${outcome}`);
-      setInstallPromptEvent(null);
+  const handleSetDefaultModel = (modelId: string) => {
+    logService.info(`Setting new default model: ${modelId}`);
+    setAppSettings(prev => ({ ...prev, modelId }));
   };
 
   const handleLoadCanvasHelperPromptAndSave = () => {
     const isCurrentlyCanvasPrompt = currentChatSettings.systemInstruction === CANVAS_ASSISTANT_SYSTEM_PROMPT;
     const newSystemInstruction = isCurrentlyCanvasPrompt ? DEFAULT_SYSTEM_INSTRUCTION : CANVAS_ASSISTANT_SYSTEM_PROMPT;
     
-    // Apply this as a global default for new chats
     setAppSettings(prev => ({...prev, systemInstruction: newSystemInstruction}));
 
-    // Also apply to the current chat if one is active, without sending a message.
     if (activeSessionId && setCurrentChatSettings) {
       setCurrentChatSettings(prevSettings => ({
         ...prevSettings,
@@ -208,50 +177,6 @@ const App: React.FC = () => {
     }, 0);
   };
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-        const activeElement = document.activeElement as HTMLElement;
-        const isGenerallyInputFocused = activeElement && (activeElement.tagName.toLowerCase() === 'input' || activeElement.tagName.toLowerCase() === 'textarea' || activeElement.tagName.toLowerCase() === 'select' || activeElement.isContentEditable);
-        if ((event.ctrlKey || event.metaKey) && event.altKey && event.key.toLowerCase() === 'n') {
-            event.preventDefault();
-            startNewChat(); 
-        } else if ((event.ctrlKey || event.metaKey) && event.altKey && event.key.toLowerCase() === 'l') {
-            event.preventDefault();
-            setIsLogViewerOpen(prev => !prev);
-        }
-        else if (event.key === 'Delete') {
-            if (isSettingsModalOpen || isPreloadedMessagesModalOpen) return;
-            const chatTextareaAriaLabel = 'Chat message input';
-            const isChatTextareaFocused = activeElement?.getAttribute('aria-label') === chatTextareaAriaLabel;
-            
-            if (isGenerallyInputFocused) {
-                if (isChatTextareaFocused && (activeElement as HTMLTextAreaElement).value.trim() === '') {
-                    event.preventDefault();
-                    handleClearCurrentChat(); 
-                }
-            } else {
-                event.preventDefault();
-                handleClearCurrentChat();
-            }
-        } else if (event.key === 'Tab' && TAB_CYCLE_MODELS.length > 0) {
-            const isChatTextareaFocused = activeElement?.getAttribute('aria-label') === 'Chat message input';
-            if (isChatTextareaFocused || !isGenerallyInputFocused) {
-                event.preventDefault();
-                const currentModelId = currentChatSettings.modelId;
-                const currentIndex = TAB_CYCLE_MODELS.indexOf(currentModelId);
-                let nextIndex: number;
-                if (currentIndex === -1) nextIndex = 0;
-                else nextIndex = (currentIndex + 1) % TAB_CYCLE_MODELS.length;
-                const newModelId = TAB_CYCLE_MODELS[nextIndex];
-                if (newModelId) handleSelectModelInHeader(newModelId);
-            }
-        }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [startNewChat, handleClearCurrentChat, isSettingsModalOpen, isPreloadedMessagesModalOpen, currentChatSettings.modelId, handleSelectModelInHeader]);
-
   const getCurrentModelDisplayName = () => {
     const modelIdToDisplay = currentChatSettings.modelId || appSettings.modelId;
     if (isModelsLoading && !modelIdToDisplay && apiModels.length === 0) return t('appLoadingModels');
@@ -262,6 +187,92 @@ const App: React.FC = () => {
     if (modelIdToDisplay) { let n = modelIdToDisplay.split('/').pop()?.replace('gemini-','Gemini ') || modelIdToDisplay; return n.split('-').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ').replace(' Preview ',' Preview ');}
     return apiModels.length === 0 && !isModelsLoading ? t('appNoModelsAvailable') : t('appNoModelSelected');
   };
+
+  const activeChat = savedSessions.find(s => s.id === activeSessionId);
+
+  const handleExportChat = useCallback(async (format: 'png' | 'html') => {
+    if (!activeChat || !scrollContainerRef.current) return;
+    setExportStatus('exporting');
+
+    const triggerDownload = (href: string, filename: string) => {
+        const link = document.createElement('a');
+        link.href = href;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        if (href.startsWith('blob:')) {
+            URL.revokeObjectURL(href);
+        }
+    };
+    
+    const safeTitle = activeChat.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'chat';
+    const date = new Date().toISOString().slice(0, 10);
+    const filename = `chat-${safeTitle}-${date}.${format}`;
+
+    try {
+        if (format === 'png') {
+            document.body.classList.add('is-exporting-png');
+            await new Promise(resolve => setTimeout(resolve, 100)); // Allow styles to apply
+            const element = scrollContainerRef.current;
+            const canvas = await html2canvas(element, {
+                height: element.scrollHeight,
+                width: element.scrollWidth,
+                useCORS: true,
+                backgroundColor: currentTheme.colors.bgSecondary,
+                scale: 2,
+            });
+            triggerDownload(canvas.toDataURL('image/png'), filename);
+        } else { // HTML
+            const headContent = Array.from(document.head.querySelectorAll('style, link[rel="stylesheet"], script[src*="highlight.js"], script[src*="katex"]'))
+                .map(el => el.outerHTML).join('\n');
+            const bodyClasses = document.body.className;
+            const rootBgColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-bg-primary');
+            const chatHtml = scrollContainerRef.current.innerHTML;
+
+            const fullHtml = `
+                <!DOCTYPE html>
+                <html lang="${language}">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Chat Export: ${DOMPurify.sanitize(activeChat.title)}</title>
+                    ${headContent}
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+                            if (window.hljs) {
+                                document.querySelectorAll('pre code').forEach((el) => {
+                                    window.hljs.highlightElement(el);
+                                });
+                            }
+                        });
+                    </script>
+                    <style>
+                        body { background-color: ${rootBgColor}; padding: 1rem; box-sizing: border-box; }
+                        .message-actions { opacity: 0.5 !important; transform: none !important; }
+                        .group:hover .message-actions { opacity: 1 !important; }
+                        .sticky[aria-label="Scroll to bottom"] { display: none !important; }
+                    </style>
+                </head>
+                <body class="${bodyClasses}">
+                    <div class="exported-chat-container w-full max-w-7xl mx-auto">
+                        ${chatHtml}
+                    </div>
+                </body>
+                </html>
+            `;
+            const blob = new Blob([fullHtml], { type: 'text/html' });
+            triggerDownload(URL.createObjectURL(blob), filename);
+        }
+    } catch (error) {
+        logService.error(`Chat export failed (format: ${format})`, { error });
+        alert(`Export failed: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+        document.body.classList.remove('is-exporting-png');
+        setExportStatus('idle');
+        setIsExportModalOpen(false);
+    }
+}, [activeChat, currentTheme, language, scrollContainerRef]);
 
   const isCanvasPromptActive = currentChatSettings.systemInstruction === CANVAS_ASSISTANT_SYSTEM_PROMPT;
   const isImagenModel = currentChatSettings.modelId?.includes('imagen');
@@ -291,6 +302,7 @@ const App: React.FC = () => {
         onDeleteSession={handleDeleteChatHistorySession}
         onRenameSession={handleRenameSession}
         onTogglePinSession={handleTogglePinSession}
+        onOpenExportModal={() => setIsExportModalOpen(true)}
         themeColors={currentTheme.colors}
         t={t}
         language={language}
@@ -328,6 +340,8 @@ const App: React.FC = () => {
           isCanvasPromptActive={isCanvasPromptActive}
           t={t}
           isKeyLocked={!!currentChatSettings.lockedApiKey}
+          defaultModelId={appSettings.modelId}
+          onSetDefaultModel={handleSetDefaultModel}
           onExportData={handleExportAllData}
           onImportData={handleImportAllData}
         />
@@ -358,6 +372,8 @@ const App: React.FC = () => {
               onOpenLogViewer={() => setIsLogViewerOpen(true)}
               onInstallPwa={handleInstallPwa}
               isInstallable={!!installPromptEvent && !isStandalone}
+              onImportSettings={handleImportSettings}
+              onExportSettings={handleExportSettings}
               t={t}
             />
           )}
@@ -372,6 +388,15 @@ const App: React.FC = () => {
               onExportScenario={handleExportPreloadedScenario}
               t={t}
             />
+          )}
+          {isExportModalOpen && (
+              <ExportChatModal
+                isOpen={isExportModalOpen}
+                onClose={() => setIsExportModalOpen(false)}
+                onExport={handleExportChat}
+                exportStatus={exportStatus}
+                t={t}
+              />
           )}
         </>
         <MessageList

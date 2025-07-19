@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
+  title?: string;
   children: React.ReactNode;
   contentClassName?: string;
   backdropClassName?: string;
@@ -12,6 +13,7 @@ interface ModalProps {
 export const Modal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
+  title,
   children,
   contentClassName = '',
   backdropClassName = 'bg-black bg-opacity-60 backdrop-blur-sm',
@@ -65,9 +67,14 @@ export const Modal: React.FC<ModalProps> = ({
     >
       <div
         ref={modalContentRef}
-        className={`${contentClassName} ${isOpen ? 'modal-enter-animation' : 'modal-exit-animation'}`}
+        className={`bg-[var(--theme-bg-primary)] rounded-lg shadow-2xl max-w-lg w-full ${contentClassName} ${isOpen ? 'modal-enter-animation' : 'modal-exit-animation'}`}
       >
-        {children}
+        {title && (
+          <div className="p-4 border-b border-[var(--theme-bg-secondary)]">
+            <h2 className="text-lg font-semibold">{title}</h2>
+          </div>
+        )}
+        <div className={noPadding ? '' : 'p-4'}>{children}</div>
       </div>
     </div>
   );

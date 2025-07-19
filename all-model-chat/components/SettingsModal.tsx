@@ -26,7 +26,9 @@ interface SettingsModalProps {
   onOpenLogViewer: () => void;
   onInstallPwa: () => void;
   isInstallable: boolean;
-  t: (key: keyof typeof translations) => string;
+  onImportSettings: (file: File) => void;
+  onExportSettings: () => void;
+  t: (key: any) => string;
 }
 
 type SettingsTab = 'general' | 'api' | 'model';
@@ -34,7 +36,7 @@ type SettingsTab = 'general' | 'api' | 'model';
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen, onClose, currentSettings, availableModels, availableThemes, 
   onSave, isModelsLoading, modelsLoadingError, onClearAllHistory, onClearCache, onOpenLogViewer,
-  onInstallPwa, isInstallable, t
+  onInstallPwa, isInstallable, onImportSettings, onExportSettings, t
 }) => {
   const [settings, setSettings] = useState(currentSettings);
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
@@ -130,6 +132,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     onOpenLogViewer={onOpenLogViewer}
                     onInstallPwa={onInstallPwa}
                     isInstallable={isInstallable}
+                    onImportSettings={onImportSettings}
+                    onExportSettings={onExportSettings}
                     t={t}
                   />
                 </div>
