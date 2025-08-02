@@ -222,18 +222,18 @@ export const ChatInput: React.FC<ChatInputProps> = (props) => {
       return;
     }
 
-    const isMobile = getResponsiveValue(true, false);
-    if (e.key === 'Enter' && !e.shiftKey && !isMobile) {
-        const trimmedInput = inputText.trim();
-        if (trimmedInput.startsWith('/')) {
-            e.preventDefault();
-            handleSlashCommandExecution(trimmedInput);
-            return;
+    if (e.key === 'Enter') {
+      if (appSettings.isCmdEnterToSendEnabled) {
+        if (e.metaKey || e.ctrlKey) {
+          e.preventDefault();
+          handleSubmit(e as unknown as React.FormEvent);
         }
-        if (canSend) {
-            e.preventDefault();
-            handleSubmit(e as unknown as React.FormEvent);
+      } else {
+        if (!e.shiftKey && !isComposingRef.current) {
+          e.preventDefault();
+          handleSubmit(e as unknown as React.FormEvent);
         }
+      }
     }
   };
 

@@ -121,6 +121,7 @@ export interface AppSettings extends ChatSettings {
  isCompletionNotificationEnabled: boolean;
  isSuggestionsEnabled: boolean;
  isAutoScrollOnSendEnabled?: boolean;
+  isCmdEnterToSendEnabled: boolean;
 }
 
 

@@ -64,4 +64,5 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   isCompletionNotificationEnabled: false,
   isSuggestionsEnabled: true,
   isAutoScrollOnSendEnabled: true,
+  isCmdEnterToSendEnabled: false,
 };

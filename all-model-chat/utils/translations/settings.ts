@@ -27,6 +27,8 @@ export const settingsTranslations = {
     settingsThinkingBudget_tooltip: { en: 'Set token budget for thinking. -1 for auto/unlimited, 0 to disable (like toggle off), >0 for specific token limit.', zh: '设置思考的令牌预算。-1 为自动/无限制，0 为禁用（与关闭开关效果相同），大于 0 为指定的令牌限制。' },
     settingsThinkingBudget_placeholder: { en: 'e.g., -1 for auto', zh: '例如：-1 代表自动' },
     settingsTranscriptionThinking: { en: 'Enable Thinking for Voice Input', zh: '启用语音输入思考功能' },
+    setting_cmdEnterToSend_label: { en: 'Cmd/Ctrl + Enter to Send', zh: 'Cmd/Ctrl + Enter 发送' },
+    setting_cmdEnterToSend_description: { en: 'Send message by pressing Cmd/Ctrl + Enter instead of just Enter.', zh: '按 Cmd/Ctrl + Enter 发送消息，而不是仅按 Enter。' },
     settingsReset: { en: 'Reset', zh: '重置' },
     settingsClearHistory: { en: 'Clear History', zh: '清空历史' },
     settingsClearHistory_aria: { en: 'Clear all chat history', zh: '清空所有聊天记录' },

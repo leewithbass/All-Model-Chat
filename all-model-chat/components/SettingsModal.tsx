@@ -119,13 +119,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               {activeTab === 'general' && (
                 <div className="space-y-4">
                   <AppearanceSection
-                    themeId={settings.themeId}
-                    setThemeId={(val) => updateSetting('themeId', val)}
-                    availableThemes={availableThemes}
-                    baseFontSize={settings.baseFontSize}
-                    setBaseFontSize={(val) => updateSetting('baseFontSize', val)}
-                    language={settings.language}
-                    setLanguage={(val) => updateSetting('language', val)}
+                    appSettings={settings}
+                    onSettingChange={updateSetting}
                     t={t}
                   />
                   <DataManagementSection
