@@ -189,67 +189,6 @@ export const Message: React.FC<MessageProps> = React.memo((props) => {
         error: 'bg-[var(--theme-bg-error-message)] text-[var(--theme-bg-error-message-text)] rounded-lg',
     };
 
-    const [deltaX, setDeltaX] = useState(0);
-    const [isSwiping, setIsSwiping] = useState(false);
-    const [copied, setCopied] = useState(false);
-    const touchStartRef = useRef({ x: 0, y: 0 });
-    const isSwipeGesture = useRef<boolean | null>(null);
-    const isMobile = useMemo(() => typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0), []);
-
-    const SWIPE_THRESHOLD = 80;
-
-    const handleTouchStart = (e: React.TouchEvent) => {
-        if (!isMobile || message.isLoading) return;
-        touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        isSwipeGesture.current = null;
-        setIsSwiping(true);
-        setCopied(false);
-    };
-
-    const handleTouchMove = (e: React.TouchEvent) => {
-        if (!isMobile || !isSwiping || message.isLoading) return;
-        const currentX = e.touches[0].clientX;
-        const currentY = e.touches[0].clientY;
-        const dx = currentX - touchStartRef.current.x;
-        const dy = currentY - touchStartRef.current.y;
-
-        if (isSwipeGesture.current === null) {
-            if (Math.abs(dx) > Math.abs(dy) + 5) {
-                isSwipeGesture.current = true; // Horizontal
-            } else {
-                isSwipeGesture.current = false; // Vertical
-            }
-        }
-        
-        if (isSwipeGesture.current) {
-            e.preventDefault();
-            const limitedDx = Math.max(-150, Math.min(150, dx));
-            setDeltaX(limitedDx);
-        } else {
-            setIsSwiping(false);
-        }
-    };
-
-    const handleTouchEnd = () => {
-        if (!isMobile || message.isLoading) return;
-        
-        if (isSwipeGesture.current) {
-            if (deltaX > SWIPE_THRESHOLD) {
-                onDeleteMessage(message.id);
-            } else if (deltaX < -SWIPE_THRESHOLD) {
-                if (message.content) {
-                    navigator.clipboard.writeText(message.content);
-                    setCopied(true);
-                    setTimeout(() => setCopied(false), 2000);
-                }
-            }
-        }
-        
-        setIsSwiping(false);
-        setDeltaX(0);
-        isSwipeGesture.current = null;
-    };
-
     const iconAndActions = (
         <div className="flex-shrink-0 w-8 sm:w-10 flex flex-col items-center sticky top-2 sm:top-4 self-start z-10">
             <div className="h-6 sm:h-7">
@@ -289,40 +228,12 @@ export const Message: React.FC<MessageProps> = React.memo((props) => {
             data-message-id={message.id} 
             data-message-role={message.role}
         >
-             {isMobile && (
-                <div 
-                    className={`absolute inset-0 rounded-2xl ${isGrouped ? 'mt-1' : 'mt-3 sm:mt-4'}`}
-                    aria-hidden="true"
-                >
-                    <div className="absolute inset-y-0 left-0 w-full flex items-center justify-start pl-6 bg-red-500 text-white rounded-2xl"
-                        style={{ 
-                            clipPath: `inset(0 ${-deltaX > 0 ? '100%' : `calc(100% - ${deltaX}px)`} 0 0)`,
-                            opacity: Math.min(1, Math.abs(deltaX) / SWIPE_THRESHOLD),
-                        }}>
-                        <Trash2 size={20} />
-                    </div>
-                    <div className="absolute inset-y-0 right-0 w-full flex items-center justify-end pr-6 bg-blue-500 text-white rounded-2xl"
-                        style={{ 
-                            clipPath: `inset(0 0 0 ${deltaX < 0 ? `calc(100% - ${-deltaX}px)` : '100%'})`,
-                            opacity: Math.min(1, Math.abs(deltaX) / SWIPE_THRESHOLD),
-                        }}>
-                        {copied ? <Check size={20} /> : <ClipboardCopy size={20} />}
-                    </div>
-                </div>
-            )}
             <div
                 className={`${messageContainerClasses}`} 
-                style={{ 
-                    transform: `translateX(${deltaX}px)`,
-                    transition: isSwiping ? 'none' : 'transform 0.3s ease',
-                }}
             >
                 {message.role !== 'user' && iconAndActions}
                 <div 
                     className={`${bubbleClasses} ${roleSpecificBubbleClasses[message.role]}`}
-                    onTouchStart={handleTouchStart}
-                    onTouchMove={handleTouchMove}
-                    onTouchEnd={handleTouchEnd}
                 >
                     <MessageContent
                         message={message}
