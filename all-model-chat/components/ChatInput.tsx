@@ -330,7 +330,7 @@ export const ChatInput: React.FC<ChatInputProps> = (props) => {
     }
 
     const isMobile = getResponsiveValue(true, false);
-    if (e.key === 'Enter' && !e.shiftKey && !isMobile) {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !isMobile) {
         const trimmedInput = inputText.trim();
         if (trimmedInput.startsWith('/')) {
             e.preventDefault();
