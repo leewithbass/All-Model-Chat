@@ -6,6 +6,8 @@
   <h1>All Model Chat - 全能模型聊天</h1>
   <strong>一款功能丰富、高度可定制的网页聊天应用，专为 Google Gemini API 家族打造。</strong>
   <br/>
+  <p><strong>注：</strong>本项目是 <a href="https://github.com/yeahhe365/All-Model-Chat" target="_blank">yeahhe365/All-Model-Chat</a> 的一个分支 (fork)，并根据个人使用习惯进行了修改。感谢原作者的付出。</p>
+  <br/>
   <p>
     <a href="https://aistudio.google.com/app/prompts?state=%7B%22ids%22:%5B%22169U2Al5556WX7bcWYdaPwHvzoAU7PqW_%22%5D,%22action%22:%22open%22,%22userId%22:%22102038139080022776927%22,%22resourceKeys%22:%7B%7D%7D&usp=sharing" target="_blank"><strong>🚀 在 Google AI Studio 中尝试</strong></a>
     &nbsp;&nbsp;•&nbsp;&nbsp;
@@ -62,22 +64,22 @@
 
 本应用旨在浏览器中直接使用，无需任何后端或安装配置。
 
-1.  **打开应用**: 访问 **[all-model-chat.pages.dev](https://all-model-chat.pages.dev/)**。
+1.  **打开应用**: 访问 **[<sup>1</sup>](https://all-model-chat.pages.dev/)**。
 2.  **打开设置**: 点击页面右上角的齿轮图标 (⚙️)。
 3.  **启用自定义配置**: 在“API 配置”部分，打开“使用自定义 API 配置”的开关。
-4.  **输入您的 API 密钥**: 将您的 Google Gemini API 密钥粘贴到文本框中。您可以从 **[Google AI Studio](https://aistudio.google.com/app/apikey)** 获取密钥。支持每行输入一个，以使用多个密钥轮换。
+4.  **输入您的 API 密钥**: 将您的 Google Gemini API 密钥粘贴到文本框中。您可以从 **Google AI Studio [<sup>2</sup>](https://aistudio.google.com/app/apikey)** 获取密钥。支持每行输入一个，以使用多个密钥轮换。
 5.  **保存并开始聊天**: 点击“保存”。您的密钥将安全地存储在您浏览器的 `localStorage` 中，绝不会发送到任何其他地方。
 
 ## 🛠️ 技术栈
 
-*   **框架**: React 19 & TypeScript  
-*   **AI SDK**: `@google/genai`  
-*   **样式**: Tailwind CSS (通过 CDN) & CSS 变量（用于主题化）  
-*   **Markdown 与渲染**: `react-markdown`, `remark-gfm`, `remark-math`, `rehype-highlight`, `rehype-katex`, `highlight.js`, `DOMPurify`, `mermaid`, `viz.js`  
-*   **图片导出**: `html2canvas`  
-*   **模块加载**: 现代 ES 模块 & Import Maps (通过 `esm.sh`)  
-*   **图标**: Lucide React  
-*   **离线支持**: Service Worker (`sw.js`) 用于缓存应用外壳  
+*   **框架**: React 19 & TypeScript
+*   **AI SDK**: `@google/genai`
+*   **样式**: Tailwind CSS (通过 CDN) & CSS 变量（用于主题化）
+*   **Markdown 与渲染**: `react-markdown`, `remark-gfm`, `remark-math`, `rehype-highlight`, `rehype-katex`, `highlight.js`, `DOMPurify`, `mermaid`, `viz.js`
+*   **图片导出**: `html2canvas`
+*   **模块加载**: 现代 ES 模块 & Import Maps (通过 `esm.sh`)
+*   **图标**: Lucide React
+*   **离线支持**: Service Worker (`sw.js`) 用于缓存应用外壳
 
 ## 📁 项目结构
 
@@ -110,3 +112,4 @@ All-Model-Chat/
 │
 ├── index.html              # 主 HTML 文件，包含 import maps 和核心样式
 └── README.md
+```
