@@ -9,6 +9,8 @@ interface ApiConfigSectionProps {
   setApiKey: (value: string | null) => void;
   apiProxyUrl: string | null;
   setApiProxyUrl: (value: string | null) => void;
+  apiHost: string;
+  setApiHost: (value: string) => void;
   useApiProxy: boolean;
   setUseApiProxy: (value: boolean) => void;
   t: (key: string) => string;
@@ -21,6 +23,8 @@ export const ApiConfigSection: React.FC<ApiConfigSectionProps> = ({
   setApiKey,
   apiProxyUrl,
   setApiProxyUrl,
+  apiHost,
+  setApiHost,
   useApiProxy,
   setUseApiProxy,
   t,
@@ -91,6 +95,26 @@ export const ApiConfigSection: React.FC<ApiConfigSectionProps> = ({
                 {t('settingsApiKeyHelpText')}
               </p>
             )}
+        </div>
+        <div>
+          <label htmlFor="api-host-input" className="block text-xs font-medium text-[var(--theme-text-secondary)] mb-1.5">
+            API Host
+          </label>
+          <input
+            id="api-host-input"
+            type="text"
+            value={apiHost}
+            onChange={(e) => setApiHost(e.target.value)}
+            className={`${inputBaseClasses} ${useCustomApiConfig ? enabledInputClasses : disabledInputClasses}`}
+            placeholder={useCustomApiConfig ? 'e.g., https://api.example.com' : 'Enable custom config first'}
+            aria-label="API Host"
+            disabled={!useCustomApiConfig}
+          />
+          {useCustomApiConfig && (
+            <p className="text-xs text-[var(--theme-text-tertiary)] mt-1.5">
+              Overrides the default API host. Leave empty to use the proxy or default host.
+            </p>
+          )}
         </div>
         <div>
           <label htmlFor="use-api-proxy-toggle" className="flex items-center justify-between py-1 cursor-pointer">

@@ -44,7 +44,27 @@ export const getApiClient = (apiKey?: string | null, baseUrl?: string): GoogleGe
         silentError.name = "SilentError";
         throw silentError;
     }
-    return getClient(apiKey, baseUrl);
+    
+    // Determine the effective base URL
+    let effectiveBaseUrl = baseUrl;
+    
+    // If no baseUrl is provided, check for a custom apiHost in localStorage
+    if (!effectiveBaseUrl) {
+        try {
+            const storedSettings = localStorage.getItem('app-settings');
+            if (storedSettings) {
+                const settings = JSON.parse(storedSettings);
+                // Use apiHost if it's set and non-empty
+                if (settings.apiHost) {
+                    effectiveBaseUrl = settings.apiHost;
+                }
+            }
+        } catch (e) {
+            logService.error("Failed to parse app settings from localStorage for apiHost", e);
+        }
+    }
+    
+    return getClient(apiKey, effectiveBaseUrl);
 };
 
 export const buildGenerationConfig = (
