@@ -161,87 +161,121 @@ export const useDataManagement = ({
         const safeTitle = sanitizeFilename(activeChat.title);
         const date = new Date().toISOString().slice(0, 10);
         const filename = `chat-${safeTitle}-${date}.${format}`;
-
         const scrollContainer = scrollContainerRef.current;
-        let originalPaddingBottom: string | null = null;
 
-        try {
-            if (format === 'png') {
-                if (!scrollContainer) return;
-                document.body.classList.add('is-exporting-png');
-                originalPaddingBottom = scrollContainer.style.paddingBottom;
-                scrollContainer.style.paddingBottom = '16px'; // Use a small fixed padding for export
-                await new Promise(resolve => setTimeout(resolve, 100)); // Allow styles to apply
+        if (format === 'png') {
+            if (!scrollContainer) return;
+
+            const tempContainer = document.createElement('div');
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.style.top = '0px';
+            tempContainer.style.width = '1024px';
+            tempContainer.style.padding = '0';
+
+            try {
+                const allStyles = await gatherPageStyles();
+                const chatClone = scrollContainer.cloneNode(true) as HTMLElement;
                 
-                const exportBgColor = currentTheme.id === 'pearl' ? currentTheme.colors.bgPrimary : currentTheme.colors.bgSecondary;
-                await exportElementAsPng(scrollContainer, filename, {
-                    backgroundColor: exportBgColor,
+                chatClone.querySelectorAll('details').forEach(details => {
+                    details.setAttribute('open', '');
                 });
 
-            } else if (format === 'html') {
-                if (!scrollContainer) return;
+                chatClone.querySelectorAll('[aria-label*="Scroll to"]').forEach(el => el.remove());
+                chatClone.querySelectorAll('[data-message-id]').forEach(el => {
+                    el.classList.add('message-container-animate');
+                });
 
-                const headContent = await gatherPageStyles();
                 const bodyClasses = document.body.className;
                 const rootBgColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-bg-primary');
-                const chatHtml = scrollContainer.innerHTML;
+                const exportBgColor = currentTheme.id === 'pearl' ? currentTheme.colors.bgPrimary : currentTheme.colors.bgSecondary;
 
-                const fullHtml = `
-                    <!DOCTYPE html>
-                    <html lang="${language}">
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>Chat Export: ${DOMPurify.sanitize(activeChat.title)}</title>
-                        ${headContent}
-                        <script>
-                            document.addEventListener('DOMContentLoaded', () => {
+                tempContainer.innerHTML = `
+                    ${allStyles}
+                    <div class="theme-${currentTheme.id} ${bodyClasses} is-exporting-png" style="background-color: ${rootBgColor};">
+                        <div style="background-color: ${exportBgColor}; padding: 1rem;">
+                            <div class="exported-chat-container w-full max-w-7xl mx-auto">
+                                ${chatClone.innerHTML}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(tempContainer);
+                const captureTarget = tempContainer.querySelector<HTMLElement>(':scope > div');
+                if (!captureTarget) throw new Error("Could not find capture target for PNG export.");
+                
+                await new Promise(resolve => setTimeout(resolve, 500)); 
+
+                await exportElementAsPng(captureTarget, filename, {
+                    backgroundColor: null,
+                    scale: 2,
+                });
+
+            } finally {
+                if (document.body.contains(tempContainer)) {
+                    document.body.removeChild(tempContainer);
+                }
+            }
+            return;
+        }
+
+        if (format === 'html') {
+            if (!scrollContainer) return;
+
+            const headContent = await gatherPageStyles();
+            const bodyClasses = document.body.className;
+            const rootBgColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-bg-primary');
+            const chatHtml = scrollContainer.innerHTML;
+
+            const fullHtml = `
+                <!DOCTYPE html>
+                <html lang="${language}">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Chat Export: ${DOMPurify.sanitize(activeChat.title)}</title>
+                    ${headContent}
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+                            document.querySelectorAll('pre code').forEach((el) => {
                                 if (window.hljs) {
-                                    document.querySelectorAll('pre code').forEach((el) => {
-                                        window.hljs.highlightElement(el);
-                                    });
+                                    window.hljs.highlightElement(el);
                                 }
                             });
-                        </script>
-                        <style>
-                            body { background-color: ${rootBgColor}; padding: 1rem; box-sizing: border-box; }
-                            .message-actions, .code-block-utility-button { display: none !important; }
-                            .sticky[aria-label="Scroll to bottom"] { display: none !important; }
-                        </style>
-                    </head>
-                    <body class="${bodyClasses}">
-                        <div class="exported-chat-container w-full max-w-7xl mx-auto">
-                            ${chatHtml}
-                        </div>
-                    </body>
-                    </html>
-                `;
-                exportHtmlStringAsFile(fullHtml, filename);
-            } else { // TXT
-                const textContent = activeChat.messages.map(message => {
-                    const role = message.role === 'user' ? 'USER' : 'ASSISTANT';
-                    let content = `### ${role}\n`;
-                    if (message.files && message.files.length > 0) {
-                        message.files.forEach(file => {
-                            content += `[File attached: ${file.name}]\n`;
                         });
-                    }
-                    content += message.content;
-                    return content;
-                }).join('\n\n');
+                    </script>
+                    <style>
+                        body { background-color: ${rootBgColor}; padding: 1rem; box-sizing: border-box; }
+                        .message-actions, .code-block-utility-button { display: none !important; }
+                        .sticky[aria-label*="Scroll to"] { display: none !important; }
+                    </style>
+                </head>
+                <body class="${bodyClasses}">
+                    <div class="exported-chat-container w-full max-w-7xl mx-auto">
+                        ${chatHtml}
+                    </div>
+                </body>
+                </html>
+            `;
+            exportHtmlStringAsFile(fullHtml, filename);
+        } else { // TXT
+            const textContent = activeChat.messages.map(message => {
+                const role = message.role === 'user' ? 'USER' : 'ASSISTANT';
+                let content = `### ${role}\n`;
+                if (message.files && message.files.length > 0) {
+                    message.files.forEach(file => {
+                        content += `[File attached: ${file.name}]\n`;
+                    });
+                }
+                content += message.content;
+                return content;
+            }).join('\n\n');
 
-                exportTextStringAsFile(textContent, filename);
-            }
-        } catch (error) {
-            // Re-throw so the UI layer can handle it
-            throw error;
-        } finally {
-            document.body.classList.remove('is-exporting-png');
-            if (scrollContainer && originalPaddingBottom !== null) {
-                scrollContainer.style.paddingBottom = originalPaddingBottom;
-            }
+            exportTextStringAsFile(textContent, filename);
         }
-    }, [activeChat, currentTheme, language, scrollContainerRef]);
+    }, [activeChat, currentTheme, language, scrollContainerRef, t]);
 
     return {
         handleExportSettings,
