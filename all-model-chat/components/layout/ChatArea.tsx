@@ -27,6 +27,7 @@ export const ChatArea: React.FC<ChatAreaProps> = (props) => {
     onTogglePinCurrentSession, onRetryLastTurn, onEditLastUserMessage,
     onOpenLogViewer, onClearAllHistory,
     isPipSupported, isPipActive, onTogglePip,
+    currentChatSettings, onSetCustomSystemPrompt,
     t
   } = props;
 
