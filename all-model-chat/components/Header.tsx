@@ -110,6 +110,17 @@ export const Header: React.FC<HeaderProps> = ({
     ? t('canvasHelperActive_title')
     : t('canvasHelperInactive_title');
 
+  // Add this function
+  const handleSetCustomSystemPromptClick = () => {
+    setIsCustomSystemPromptModalOpen(true);
+  };
+
+  // Add this function
+  const handleSaveCustomSystemPrompt = (newPrompt: string) => {
+    onSetCustomSystemPrompt(newPrompt);
+    setIsCustomSystemPromptModalOpen(false);
+  };
+
 
   return (
     <header className={`${themeId === 'pearl' ? 'bg-[var(--theme-bg-primary)]' : 'bg-[var(--theme-bg-secondary)]'} p-2 shadow-premium flex items-center justify-between gap-2 border-b border-[var(--theme-border-primary)] flex-shrink-0`}>
