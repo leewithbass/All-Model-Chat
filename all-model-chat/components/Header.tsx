@@ -222,6 +222,15 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
       <div className="flex items-center gap-1.5 sm:gap-2 justify-end flex-shrink-0">
+        {/* Add the new button here */}
+        <button
+          onClick={handleSetCustomSystemPromptClick}
+          className="p-2 sm:p-2.5 bg-[var(--theme-bg-tertiary)] hover:bg-[var(--theme-bg-input)] text-[var(--theme-icon-settings)] rounded-lg shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--theme-bg-primary)] focus:ring-[var(--theme-border-focus)] flex items-center justify-center hover:scale-105 active:scale-105"
+          aria-label="Set custom system prompt"
+          title="Set custom system prompt"
+        >
+          <FileText size={getResponsiveValue(16, 18)} />
+        </button>
         <button
           onClick={onLoadCanvasPrompt}
           disabled={isLoading}
@@ -233,7 +242,7 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
         <button
           onClick={onOpenScenariosModal}
-          className="p-2 sm:p-2.5 bg-[var(--theme-bg-tertiary)] hover:bg-[var(--theme-bg-input)] text-[var(--theme-icon-settings)] rounded-lg shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--theme-bg-primary)] focus:ring-[var(--theme-border-focus)] flex items-center justify-center hover:scale-105 active:scale-100"
+          className="p-2 sm:p-2.5 bg-[var(--theme-bg-tertiary)] hover:bg-[var(--theme-bg-input)] text-[var(--theme-icon-settings)] rounded-lg shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--theme-bg-primary)] focus:ring-[var(--theme-border-focus)] flex items-center justify-center hover:scale-105 active:scale-105"
           aria-label={t('scenariosManage_aria')}
           title={t('scenariosManage_title')}
         >
@@ -242,7 +251,7 @@ export const Header: React.FC<HeaderProps> = ({
         {isPipSupported && (
             <button
               onClick={onTogglePip}
-              className="p-2 sm:p-2.5 bg-[var(--theme-bg-tertiary)] hover:bg-[var(--theme-bg-input)] text-[var(--theme-icon-settings)] rounded-lg shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--theme-bg-primary)] focus:ring-[var(--theme-border-focus)] flex items-center justify-center hover:scale-105 active:scale-100"
+              className="p-2 sm:p-2.5 bg-[var(--theme-bg-tertiary)] hover:bg-[var(--theme-bg-input)] text-[var(--theme-icon-settings)] rounded-lg shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--theme-bg-primary)] focus:ring-[var(--theme-border-focus)] flex items-center justify-center hover:scale-105 active:scale-105"
               aria-label={isPipActive ? 'Exit Picture-in-Picture' : 'Enter Picture-in-Picture'}
               title={`${isPipActive ? 'Exit Picture-in-Picture' : 'Enter Picture-in-Picture'} (${pipShortcut})`}
             >
@@ -251,13 +260,23 @@ export const Header: React.FC<HeaderProps> = ({
         )}
         <button
           onClick={onOpenSettingsModal} 
-          className="p-2 sm:p-2.5 bg-[var(--theme-bg-tertiary)] hover:bg-[var(--theme-bg-input)] text-[var(--theme-icon-settings)] rounded-lg shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--theme-bg-primary)] focus:ring-[var(--theme-border-focus)] flex items-center justify-center hover:scale-105 active:scale-100"
+          className="p-2 sm:p-2.5 bg-[var(--theme-bg-tertiary)] hover:bg-[var(--theme-bg-input)] text-[var(--theme-icon-settings)] rounded-lg shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--theme-bg-primary)] focus:ring-[var(--theme-border-focus)] flex items-center justify-center hover:scale-105 active:scale-105"
           aria-label={t('settingsOpen_aria')}
           title={t('settingsOpen_title')}
         >
           <Settings size={getResponsiveValue(16, 18)} />
         </button>
       </div>
+      {/* Add the modal here */}
+      {isCustomSystemPromptModalOpen && (
+        <CustomSystemPromptModal
+          isOpen={isCustomSystemPromptModalOpen}
+          onClose={() => setIsCustomSystemPromptModalOpen(false)}
+          currentPrompt={currentChatSettings.customSystemPrompt || ''}
+          onSave={handleSaveCustomSystemPrompt}
+          t={t}
+        />
+      )}
     </header>
   );
 };
