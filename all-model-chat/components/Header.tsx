@@ -63,6 +63,7 @@ export const Header: React.FC<HeaderProps> = ({
   const modelSelectorRef = useRef<HTMLDivElement>(null);
   const [newChatShortcut, setNewChatShortcut] = useState('');
   const [pipShortcut, setPipShortcut] = useState('');
+  const [isCustomSystemPromptModalOpen, setIsCustomSystemPromptModalOpen] = useState(false); // Add this state
 
   const displayModelName = isModelsLoading && !currentModelName ? t('loading') : currentModelName;
 
