@@ -76,6 +76,7 @@ export interface ChatSettings {
   topP: number;
   showThoughts: boolean;
   systemInstruction: string;
+  customSystemPrompt?: string;
   ttsVoice: string;
   thinkingBudget: number;
   lockedApiKey?: string | null;
