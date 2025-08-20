@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Settings, ChevronDown, Check, Loader2, Trash2, Pin, MessagesSquare, PanelLeftOpen, PanelLeftClose, SquarePen, Wand2, Lock, Download, PictureInPicture, PictureInPicture2 } from 'lucide-react'; 
-import { ModelOption } from '../types';
+import { Settings, ChevronDown, Check, Loader2, Trash2, Pin, MessagesSquare, PanelLeftOpen, PanelLeftClose, SquarePen, Wand2, Lock, Download, PictureInPicture, PictureInPicture2, FileText } from 'lucide-react'; // Add FileText import
+import { ModelOption, ChatSettings } from '../types'; // Add ChatSettings import
 import { translations, getResponsiveValue } from '../utils/appUtils';
 
 import { ChatSettings } from '../types'; // Add this import
