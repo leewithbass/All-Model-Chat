@@ -218,6 +218,15 @@ const App: React.FC = () => {
       }));
     }
   };
+
+  const handleSetCustomSystemPrompt = (newPrompt: string) => {
+    if (activeSessionId && setCurrentChatSettings) {
+      setCurrentChatSettings(prevSettings => ({
+        ...prevSettings,
+        customSystemPrompt: newPrompt,
+      }));
+    }
+  };
   
   const handleHomepageSuggestionClick = (text: string) => {
     setCommandedInput({ text: text + '\n', id: Date.now() });
