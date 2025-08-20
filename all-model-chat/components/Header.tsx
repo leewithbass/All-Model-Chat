@@ -55,6 +55,8 @@ export const Header: React.FC<HeaderProps> = ({
   isPipActive,
   onTogglePip,
   themeId,
+  currentChatSettings,
+  onSetCustomSystemPrompt,
 }) => {
   const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
   const [hoveredModelId, setHoveredModelId] = useState<string | null>(null);
