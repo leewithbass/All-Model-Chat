@@ -32,4 +32,9 @@ export const messagesTranslations = {
     cancelled_by_user: { en: '[Cancelled by user]', zh: '[用户已取消]' },
     stopped_by_user: { en: '[Stopped by user]', zh: '[用户已停止]' },
     empty_response_error: { en: 'The model did not provide a response. This might be due to safety filters or other content restrictions.', zh: '模型未提供任何回复。这可能是由于安全过滤器或其他内容限制所致。' },
+    // Custom System Prompt Modal
+    customSystemPrompt_title: { en: 'Custom System Prompt', zh: '自定义系统提示词' },
+    customSystemPrompt_description: { en: 'Set a custom system prompt for this conversation. This will override the default system prompt.', zh: '为此对话设置自定义系统提示词。这将覆盖默认的系统提示词。' },
+    customSystemPrompt_placeholder: { en: 'Enter your custom system prompt here...', zh: '在此输入您的自定义系统提示词...' },
+    customSystemPrompt_label: { en: 'Custom System Prompt', zh: '自定义系统提示词' },
 };
