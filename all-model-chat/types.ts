@@ -457,5 +457,9 @@ export interface ChatAreaProps {
   isPipActive: boolean;
   onTogglePip: () => void;
   
+  // Custom System Prompt
+  currentChatSettings: ChatSettings;
+  onSetCustomSystemPrompt: (newPrompt: string) => void;
+  
   t: (key: keyof typeof translations, fallback?: string) => string;
 }
