@@ -3,6 +3,8 @@ import { Settings, ChevronDown, Check, Loader2, Trash2, Pin, MessagesSquare, Pan
 import { ModelOption } from '../types';
 import { translations, getResponsiveValue } from '../utils/appUtils';
 
+import { ChatSettings } from '../types'; // Add this import
+
 interface HeaderProps {
   onNewChat: () => void;
   onOpenSettingsModal: () => void; 
@@ -26,6 +28,8 @@ interface HeaderProps {
   isPipActive: boolean;
   onTogglePip: () => void;
   themeId: string;
+  currentChatSettings: ChatSettings;
+  onSetCustomSystemPrompt: (newPrompt: string) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
