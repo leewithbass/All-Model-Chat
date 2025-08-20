@@ -345,6 +345,8 @@ const App: React.FC = () => {
         isPipSupported={isPipSupported}
         isPipActive={isPipActive}
         onTogglePip={togglePip}
+        currentChatSettings={currentChatSettings}
+        onSetCustomSystemPrompt={handleSetCustomSystemPrompt}
         t={t}
       />
   );
