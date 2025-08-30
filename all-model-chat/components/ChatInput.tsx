@@ -31,6 +31,7 @@ interface ChatInputProps {
   fileError: string | null;
   t: (key: keyof typeof translations) => string;
   isImagenModel?: boolean;
+  isImageEditModel?: boolean;
   aspectRatio?: string;
   setAspectRatio?: (ratio: string) => void;
   isGoogleSearchEnabled: boolean;
@@ -60,7 +61,7 @@ export const ChatInput: React.FC<ChatInputProps> = (props) => {
     appSettings, activeSessionId, commandedInput, onMessageSent, selectedFiles, setSelectedFiles, onSendMessage,
     isLoading, isEditing, onStopGenerating, onCancelEdit, onProcessFiles,
     onAddFileById, onCancelUpload, isProcessingFile, fileError, t,
-    isImagenModel, aspectRatio, setAspectRatio, onTranscribeAudio,
+    isImagenModel, isImageEditModel, aspectRatio, setAspectRatio, onTranscribeAudio,
     isGoogleSearchEnabled, onToggleGoogleSearch,
     isCodeExecutionEnabled, onToggleCodeExecution,
     isUrlContextEnabled, onToggleUrlContext,
@@ -322,7 +323,12 @@ export const ChatInput: React.FC<ChatInputProps> = (props) => {
 
   const isModalOpen = showCreateTextFileEditor || showCamera || showRecorder;
   const isAnyModalOpen = isModalOpen || isHelpModalOpen;
-  const canSend = (inputText.trim() !== '' || selectedFiles.length > 0) && !isLoading && !isAddingById && !isModalOpen;
+  
+  const canSend = (
+    (inputText.trim() !== '' || selectedFiles.length > 0)
+    && !isLoading && !isAddingById && !isModalOpen
+  );
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -377,7 +383,13 @@ export const ChatInput: React.FC<ChatInputProps> = (props) => {
   };
 
   const removeSelectedFile = (fileIdToRemove: string) => {
-    setSelectedFiles(prev => prev.filter(f => f.id !== fileIdToRemove));
+    setSelectedFiles(prev => {
+        const fileToRemove = prev.find(f => f.id === fileIdToRemove);
+        if (fileToRemove && fileToRemove.dataUrl && fileToRemove.dataUrl.startsWith('blob:')) {
+            URL.revokeObjectURL(fileToRemove.dataUrl);
+        }
+        return prev.filter(f => f.id !== fileIdToRemove);
+    });
   };
 
   const handleAddFileByIdSubmit = async () => {

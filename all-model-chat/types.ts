@@ -1,4 +1,4 @@
-import { Chat, Part, File as GeminiFile, UsageMetadata } from "@google/genai";
+import { Chat, Part, File as GeminiFile, UsageMetadata, ChatHistoryItem } from "@google/genai";
 import { Theme, ThemeColors } from './constants/themeConstants'; 
 import { translations } from "./utils/appUtils";
 import { AttachmentAction } from "./components/chat/input/AttachmentMenu";
@@ -65,10 +65,11 @@ export interface ContentPart {
   };
 }
 
-export interface ChatHistoryItem {
-  role: 'user' | 'model';
-  parts: ContentPart[]; 
-}
+// This is now defined in the @google/genai types, but we keep it here for reference and potential extension.
+// export interface ChatHistoryItem {
+//   role: 'user' | 'model';
+//   parts: ContentPart[]; 
+// }
 
 export interface ChatSettings {
   modelId: string;
@@ -123,6 +124,7 @@ export interface AppSettings extends ChatSettings {
  isSuggestionsEnabled: boolean;
  isAutoScrollOnSendEnabled?: boolean;
  isAutoSendOnSuggestionClick?: boolean;
+ generateQuadImages?: boolean;
 }
 
 
@@ -131,16 +133,8 @@ export interface GeminiService {
   uploadFile: (apiKey: string, file: File, mimeType: string, displayName: string, signal: AbortSignal) => Promise<GeminiFile>;
   getFileMetadata: (apiKey: string, fileApiName: string) => Promise<GeminiFile | null>;
   sendMessageStream: (
-    apiKey: string,
-    modelId: string,
-    historyWithLastPrompt: ChatHistoryItem[],
-    systemInstruction: string,
-    config: { temperature?: number; topP?: number },
-    showThoughts: boolean,
-    thinkingBudget: number,
-    isGoogleSearchEnabled: boolean,
-    isCodeExecutionEnabled: boolean,
-    isUrlContextEnabled: boolean,
+    chat: Chat,
+    parts: Part[],
     abortSignal: AbortSignal,
     onPart: (part: Part) => void,
     onThoughtChunk: (chunk: string) => void,
@@ -148,16 +142,30 @@ export interface GeminiService {
     onComplete: (usageMetadata?: UsageMetadata, groundingMetadata?: any) => void
   ) => Promise<void>;
   sendMessageNonStream: (
+    chat: Chat,
+    parts: Part[],
+    abortSignal: AbortSignal,
+    onError: (error: Error) => void,
+    onComplete: (parts: Part[], thoughtsText?: string, usageMetadata?: UsageMetadata, groundingMetadata?: any) => void
+  ) => Promise<void>;
+  sendStatelessMessageStream: (
     apiKey: string,
     modelId: string,
-    historyWithLastPrompt: ChatHistoryItem[],
-    systemInstruction: string,
-    config: { temperature?: number; topP?: number },
-    showThoughts: boolean,
-    thinkingBudget: number,
-    isGoogleSearchEnabled: boolean,
-    isCodeExecutionEnabled: boolean,
-    isUrlContextEnabled: boolean,
+    history: ChatHistoryItem[],
+    parts: Part[],
+    config: any,
+    abortSignal: AbortSignal,
+    onPart: (part: Part) => void,
+    onThoughtChunk: (chunk: string) => void,
+    onError: (error: Error) => void,
+    onComplete: (usageMetadata?: UsageMetadata, groundingMetadata?: any) => void
+  ) => Promise<void>;
+  sendStatelessMessageNonStream: (
+    apiKey: string,
+    modelId: string,
+    history: ChatHistoryItem[],
+    parts: Part[],
+    config: any,
     abortSignal: AbortSignal,
     onError: (error: Error) => void,
     onComplete: (parts: Part[], thoughtsText?: string, usageMetadata?: UsageMetadata, groundingMetadata?: any) => void
@@ -167,6 +175,7 @@ export interface GeminiService {
   transcribeAudio: (apiKey: string, audioFile: File, modelId: string, isThinkingEnabled: boolean) => Promise<string>;
   generateTitle(apiKey: string, userContent: string, modelContent: string, language: 'en' | 'zh'): Promise<string>;
   generateSuggestions(apiKey: string, userContent: string, modelContent: string, language: 'en' | 'zh'): Promise<string[]>;
+  editImage: (apiKey: string, modelId: string, history: ChatHistoryItem[], parts: Part[], abortSignal: AbortSignal) => Promise<Part[]>;
 }
 
 export interface ThoughtSupportingPart extends Part {
@@ -220,6 +229,7 @@ export interface ChatInputProps {
   fileError: string | null;
   t: (key: keyof typeof translations) => string;
   isImagenModel?: boolean;
+  isImageEditModel?: boolean;
   aspectRatio?: string;
   setAspectRatio?: (ratio: string) => void;
   isGoogleSearchEnabled: boolean;
@@ -436,6 +446,7 @@ export interface ChatAreaProps {
   isProcessingFile: boolean;
   fileError: string | null;
   isImagenModel?: boolean;
+  isImageEditModel?: boolean;
   aspectRatio?: string;
   setAspectRatio?: (ratio: string) => void;
   isGoogleSearchEnabled: boolean;
