@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { Check, ClipboardCopy } from 'lucide-react';
-import { translations, getResponsiveValue } from '../../../utils/appUtils';
+import { translations } from '../../../utils/appUtils';
 
 interface MessageCopyButtonProps {
     textToCopy?: string;
     className?: string;
     t: (key: keyof typeof translations) => string;
+    iconSize?: number;
 }
 
-export const MessageCopyButton: React.FC<MessageCopyButtonProps> = ({ textToCopy, className, t }) => {
+export const MessageCopyButton: React.FC<MessageCopyButtonProps> = ({ textToCopy, className, t, iconSize = 14 }) => {
   const [copied, setCopied] = useState(false);
-  const iconSize = getResponsiveValue(17, 19);
   const handleCopy = async () => {
     if (!textToCopy || copied) return;
     try {
