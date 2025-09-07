@@ -125,6 +125,7 @@ export interface AppSettings extends ChatSettings {
  isAutoScrollOnSendEnabled?: boolean;
  isAutoSendOnSuggestionClick?: boolean;
  generateQuadImages?: boolean;
+ autoFullscreenHtml?: boolean;
 }
 
 
@@ -173,6 +174,7 @@ export interface GeminiService {
   generateImages: (apiKey: string, modelId: string, prompt: string, aspectRatio: string, abortSignal: AbortSignal) => Promise<string[]>;
   generateSpeech: (apiKey: string, modelId: string, text: string, voice: string, abortSignal: AbortSignal) => Promise<string>;
   transcribeAudio: (apiKey: string, audioFile: File, modelId: string, isThinkingEnabled: boolean) => Promise<string>;
+  translateText(apiKey: string, text: string): Promise<string>;
   generateTitle(apiKey: string, userContent: string, modelContent: string, language: 'en' | 'zh'): Promise<string>;
   generateSuggestions(apiKey: string, userContent: string, modelContent: string, language: 'en' | 'zh'): Promise<string[]>;
   editImage: (apiKey: string, modelId: string, history: ChatHistoryItem[], parts: Part[], abortSignal: AbortSignal) => Promise<Part[]>;
@@ -184,7 +186,6 @@ export interface ThoughtSupportingPart extends Part {
 
 export interface MessageListProps {
   messages: ChatMessage[];
-  messagesEndRef: React.RefObject<HTMLDivElement>;
   scrollContainerRef: React.RefObject<HTMLDivElement>;
   onScrollContainerScroll: () => void;
   onEditMessage: (messageId: string) => void;
@@ -207,10 +208,13 @@ export interface MessageListProps {
   onScrollToPrevTurn: () => void;
   onScrollToNextTurn: () => void;
   chatInputHeight: number;
+  appSettings: AppSettings;
 }
 
 export interface ChatInputProps {
   appSettings: AppSettings;
+  currentChatSettings: ChatSettings;
+  setAppFileError: (error: string | null) => void;
   activeSessionId: string | null;
   commandedInput: { text: string; id: number } | null;
   onMessageSent: () => void;
@@ -296,6 +300,9 @@ export interface ChatInputActionsProps {
   isWaitingForUpload: boolean;
   t: (key: keyof typeof translations) => string;
   onCancelRecording: () => void;
+  onTranslate: () => void;
+  isTranslating: boolean;
+  inputText: string;
 }
 
 export interface CommandInfo {
@@ -375,6 +382,8 @@ export interface AppModalsProps {
 
 export interface ChatAreaProps {
   activeSessionId: string | null;
+  currentChatSettings: ChatSettings;
+  setAppFileError: (error: string | null) => void;
   // Drag & Drop
   isAppDraggingOver: boolean;
   handleAppDragEnter: (e: React.DragEvent<HTMLDivElement>) => void;
@@ -407,7 +416,6 @@ export interface ChatAreaProps {
 
   // MessageList Props
   messages: ChatMessage[];
-  messagesEndRef: React.RefObject<HTMLDivElement>;
   scrollContainerRef: React.RefObject<HTMLDivElement>;
   onScrollContainerScroll: () => void;
   onEditMessage: (messageId: string) => void;
