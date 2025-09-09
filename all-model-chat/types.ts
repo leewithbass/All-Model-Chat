@@ -18,7 +18,7 @@ export interface UploadedFile {
   error?: string; 
   
   // Fields for API uploaded files like PDFs
-  rawFile?: File; // Temporary storage for the browser File object before API upload
+  rawFile?: File | Blob; // Persisted File/Blob for offline access, used to generate dataUrl on load.
   fileUri?: string; // URI returned by Gemini API (e.g., "files/xxxxxxxx")
   fileApiName?: string; // Full resource name from API (e.g., "files/xxxxxxxx")
   uploadState?: 'pending' | 'uploading' | 'processing_api' | 'active' | 'failed' | 'cancelled'; // State of the file on Gemini API
@@ -149,18 +149,6 @@ export interface GeminiService {
     onError: (error: Error) => void,
     onComplete: (parts: Part[], thoughtsText?: string, usageMetadata?: UsageMetadata, groundingMetadata?: any) => void
   ) => Promise<void>;
-  sendStatelessMessageStream: (
-    apiKey: string,
-    modelId: string,
-    history: ChatHistoryItem[],
-    parts: Part[],
-    config: any,
-    abortSignal: AbortSignal,
-    onPart: (part: Part) => void,
-    onThoughtChunk: (chunk: string) => void,
-    onError: (error: Error) => void,
-    onComplete: (usageMetadata?: UsageMetadata, groundingMetadata?: any) => void
-  ) => Promise<void>;
   sendStatelessMessageNonStream: (
     apiKey: string,
     modelId: string,
@@ -199,6 +187,7 @@ export interface MessageListProps {
   isMermaidRenderingEnabled: boolean;
   isGraphvizRenderingEnabled: boolean;
   onSuggestionClick?: (suggestion: string) => void;
+  onOrganizeInfoClick?: (suggestion: string) => void;
   onFollowUpSuggestionClick?: (suggestion: string) => void;
   onTextToSpeech: (messageId: string, text: string) => void;
   ttsMessageId: string | null;
@@ -428,6 +417,7 @@ export interface ChatAreaProps {
   isMermaidRenderingEnabled: boolean;
   isGraphvizRenderingEnabled: boolean;
   onSuggestionClick: (suggestion: string) => void;
+  onOrganizeInfoClick: (suggestion: string) => void;
   onFollowUpSuggestionClick: (suggestion: string) => void;
   onTextToSpeech: (messageId: string, text: string) => void;
   ttsMessageId: string | null;

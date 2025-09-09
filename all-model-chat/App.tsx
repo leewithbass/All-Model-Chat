@@ -219,23 +219,33 @@ const App: React.FC = () => {
     }
   };
   
-  const handleHomepageSuggestionClick = (text: string) => {
-    setCommandedInput({ text: text + '\n', id: Date.now() });
-    setTimeout(() => {
-        const textarea = document.querySelector('textarea[aria-label="Chat message input"]') as HTMLTextAreaElement;
-        if (textarea) textarea.focus();
-    }, 0);
-  };
+  type SuggestionType = 'homepage' | 'organize' | 'follow-up';
 
-  const handleFollowUpSuggestionClick = (text: string) => {
-    if (appSettings.isAutoSendOnSuggestionClick ?? true) {
-      handleSendMessage({ text });
+  const handleSuggestionClick = (type: SuggestionType, text: string) => {
+    if (type === 'organize') {
+        // Ensure Canvas Helper is active
+        if (currentChatSettings.systemInstruction !== CANVAS_ASSISTANT_SYSTEM_PROMPT) {
+            const newSystemInstruction = CANVAS_ASSISTANT_SYSTEM_PROMPT;
+            
+            setAppSettings(prev => ({...prev, systemInstruction: newSystemInstruction}));
+
+            if (activeSessionId && setCurrentChatSettings) {
+              setCurrentChatSettings(prevSettings => ({
+                ...prevSettings,
+                systemInstruction: newSystemInstruction,
+              }));
+            }
+        }
+    }
+    
+    if (type === 'follow-up' && (appSettings.isAutoSendOnSuggestionClick ?? true)) {
+        handleSendMessage({ text });
     } else {
-      setCommandedInput({ text: text + '\n', id: Date.now() });
-      setTimeout(() => {
-          const textarea = document.querySelector('textarea[aria-label="Chat message input"]') as HTMLTextAreaElement;
-          if (textarea) textarea.focus();
-      }, 0);
+        setCommandedInput({ text: text + '\n', id: Date.now() });
+        setTimeout(() => {
+            const textarea = document.querySelector('textarea[aria-label="Chat message input"]') as HTMLTextAreaElement;
+            if (textarea) textarea.focus();
+        }, 0);
     }
   };
 
@@ -292,8 +302,9 @@ const App: React.FC = () => {
         expandCodeBlocksByDefault={appSettings.expandCodeBlocksByDefault}
         isMermaidRenderingEnabled={appSettings.isMermaidRenderingEnabled}
         isGraphvizRenderingEnabled={appSettings.isGraphvizRenderingEnabled ?? true}
-        onSuggestionClick={handleHomepageSuggestionClick}
-        onFollowUpSuggestionClick={handleFollowUpSuggestionClick}
+        onSuggestionClick={(text: string) => handleSuggestionClick('homepage', text)}
+        onOrganizeInfoClick={(text: string) => handleSuggestionClick('organize', text)}
+        onFollowUpSuggestionClick={(text: string) => handleSuggestionClick('follow-up', text)}
         onTextToSpeech={handleTextToSpeech}
         ttsMessageId={ttsMessageId}
         language={language}
