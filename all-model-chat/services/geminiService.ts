@@ -3,8 +3,9 @@ import { Part, UsageMetadata, File as GeminiFile, Chat, Modality } from "@google
 import { getAvailableModelsApi } from './api/modelApi';
 import { uploadFileApi, getFileMetadataApi } from './api/fileApi';
 import { generateImagesApi, generateSpeechApi, transcribeAudioApi, translateTextApi, generateTitleApi, generateSuggestionsApi } from './api/generationApi';
-import { sendMessageStreamApi, sendMessageNonStreamApi, sendStatelessMessageNonStreamApi } from './api/chatApi';
+import { sendMessageStreamApi, sendMessageNonStreamApi, sendStatelessMessageStreamApi, sendStatelessMessageNonStreamApi } from './api/chatApi';
 import { logService } from "./logService";
+import { transcribeWithQwen } from './qwenAsrService';
 
 class GeminiServiceImpl implements GeminiService {
     constructor() {
@@ -31,8 +32,11 @@ class GeminiServiceImpl implements GeminiService {
         return generateSpeechApi(apiKey, modelId, text, voice, abortSignal);
     }
 
-    async transcribeAudio(apiKey: string, audioFile: File, modelId: string, isThinkingEnabled: boolean): Promise<string> {
-        return transcribeAudioApi(apiKey, audioFile, modelId, isThinkingEnabled);
+    async transcribeAudio(apiKey: string, audioFile: File, modelId: string, options: { isThinkingEnabled: boolean, context: string, language: string, enableItn: boolean }): Promise<string> {
+        if (modelId === 'qwen-asr') {
+            return transcribeWithQwen(audioFile, options.context, options.language, options.enableItn);
+        }
+        return transcribeAudioApi(apiKey, audioFile, modelId, options);
     }
 
     async translateText(apiKey: string, text: string): Promise<string> {
@@ -101,6 +105,23 @@ class GeminiServiceImpl implements GeminiService {
     ): Promise<void> {
         return sendMessageNonStreamApi(
             chat, parts, abortSignal, onError, onComplete
+        );
+    }
+
+    async sendStatelessMessageStream(
+        apiKey: string,
+        modelId: string,
+        history: ChatHistoryItem[],
+        parts: Part[],
+        config: any,
+        abortSignal: AbortSignal,
+        onPart: (part: Part) => void,
+        onThoughtChunk: (chunk: string) => void,
+        onError: (error: Error) => void,
+        onComplete: (usageMetadata?: UsageMetadata, groundingMetadata?: any) => void
+    ): Promise<void> {
+        return sendStatelessMessageStreamApi(
+            apiKey, modelId, history, parts, config, abortSignal, onPart, onThoughtChunk, onError, onComplete
         );
     }
 

@@ -126,6 +126,9 @@ export interface AppSettings extends ChatSettings {
  isAutoSendOnSuggestionClick?: boolean;
  generateQuadImages?: boolean;
  autoFullscreenHtml?: boolean;
+ transcriptionLanguage: string;
+ enableItn: boolean;
+ transcriptionContext: string;
 }
 
 
@@ -149,6 +152,18 @@ export interface GeminiService {
     onError: (error: Error) => void,
     onComplete: (parts: Part[], thoughtsText?: string, usageMetadata?: UsageMetadata, groundingMetadata?: any) => void
   ) => Promise<void>;
+  sendStatelessMessageStream: (
+    apiKey: string,
+    modelId: string,
+    history: ChatHistoryItem[],
+    parts: Part[],
+    config: any,
+    abortSignal: AbortSignal,
+    onPart: (part: Part) => void,
+    onThoughtChunk: (chunk: string) => void,
+    onError: (error: Error) => void,
+    onComplete: (usageMetadata?: UsageMetadata, groundingMetadata?: any) => void
+  ) => Promise<void>;
   sendStatelessMessageNonStream: (
     apiKey: string,
     modelId: string,
@@ -161,7 +176,7 @@ export interface GeminiService {
   ) => Promise<void>;
   generateImages: (apiKey: string, modelId: string, prompt: string, aspectRatio: string, abortSignal: AbortSignal) => Promise<string[]>;
   generateSpeech: (apiKey: string, modelId: string, text: string, voice: string, abortSignal: AbortSignal) => Promise<string>;
-  transcribeAudio: (apiKey: string, audioFile: File, modelId: string, isThinkingEnabled: boolean) => Promise<string>;
+  transcribeAudio: (apiKey: string, audioFile: File, modelId: string, options: { isThinkingEnabled: boolean, context: string, language: string, enableItn: boolean }) => Promise<string>;
   translateText(apiKey: string, text: string): Promise<string>;
   generateTitle(apiKey: string, userContent: string, modelContent: string, language: 'en' | 'zh'): Promise<string>;
   generateSuggestions(apiKey: string, userContent: string, modelContent: string, language: 'en' | 'zh'): Promise<string[]>;
