@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AppSettings, SavedChatSession, SavedScenario, ChatGroup } from './types';
-import { CANVAS_ASSISTANT_SYSTEM_PROMPT, DEFAULT_SYSTEM_INSTRUCTION } from './constants/appConstants';
+import { CANVAS_SYSTEM_PROMPT, DEFAULT_SYSTEM_INSTRUCTION, DEFAULT_APP_SETTINGS, THINKING_BUDGET_RANGES } from './constants/appConstants';
 import { HistorySidebar } from './components/HistorySidebar';
 import { useAppSettings } from './hooks/useAppSettings';
 import { useChat } from './hooks/useChat';
@@ -20,7 +20,7 @@ const App: React.FC = () => {
   const { appSettings, setAppSettings, currentTheme, language } = useAppSettings();
   const t = getTranslator(language);
   
-  const chatState = useChat(appSettings, language);
+  const chatState = useChat(appSettings, setAppSettings, language);
   const {
       messages,
       isLoading,
@@ -202,12 +202,16 @@ const App: React.FC = () => {
 
   const handleSetDefaultModel = (modelId: string) => {
     logService.info(`Setting new default model: ${modelId}`);
-    setAppSettings(prev => ({ ...prev, modelId }));
+    const newThinkingBudget = THINKING_BUDGET_RANGES[modelId]
+      ? THINKING_BUDGET_RANGES[modelId].max
+      : DEFAULT_APP_SETTINGS.thinkingBudget;
+
+    setAppSettings(prev => ({ ...prev, modelId, thinkingBudget: newThinkingBudget }));
   };
 
-  const handleLoadCanvasHelperPromptAndSave = () => {
-    const isCurrentlyCanvasPrompt = currentChatSettings.systemInstruction === CANVAS_ASSISTANT_SYSTEM_PROMPT;
-    const newSystemInstruction = isCurrentlyCanvasPrompt ? DEFAULT_SYSTEM_INSTRUCTION : CANVAS_ASSISTANT_SYSTEM_PROMPT;
+  const handleLoadCanvasPromptAndSave = () => {
+    const isCurrentlyCanvasPrompt = currentChatSettings.systemInstruction === CANVAS_SYSTEM_PROMPT;
+    const newSystemInstruction = isCurrentlyCanvasPrompt ? DEFAULT_SYSTEM_INSTRUCTION : CANVAS_SYSTEM_PROMPT;
     
     setAppSettings(prev => ({...prev, systemInstruction: newSystemInstruction}));
 
@@ -224,8 +228,8 @@ const App: React.FC = () => {
   const handleSuggestionClick = (type: SuggestionType, text: string) => {
     if (type === 'organize') {
         // Ensure Canvas Helper is active
-        if (currentChatSettings.systemInstruction !== CANVAS_ASSISTANT_SYSTEM_PROMPT) {
-            const newSystemInstruction = CANVAS_ASSISTANT_SYSTEM_PROMPT;
+        if (currentChatSettings.systemInstruction !== CANVAS_SYSTEM_PROMPT) {
+            const newSystemInstruction = CANVAS_SYSTEM_PROMPT;
             
             setAppSettings(prev => ({...prev, systemInstruction: newSystemInstruction}));
 
@@ -260,7 +264,7 @@ const App: React.FC = () => {
     return apiModels.length === 0 && !isModelsLoading ? t('appNoModelsAvailable') : t('appNoModelSelected');
   };
 
-  const isCanvasPromptActive = currentChatSettings.systemInstruction === CANVAS_ASSISTANT_SYSTEM_PROMPT;
+  const isCanvasPromptActive = currentChatSettings.systemInstruction === CANVAS_SYSTEM_PROMPT;
   const isImagenModel = currentChatSettings.modelId?.includes('imagen');
   const isImageEditModel = currentChatSettings.modelId?.includes('image-preview');
 
@@ -283,7 +287,7 @@ const App: React.FC = () => {
         isModelsLoading={isModelsLoading}
         isSwitchingModel={isSwitchingModel}
         isHistorySidebarOpen={isHistorySidebarOpen}
-        onLoadCanvasPrompt={handleLoadCanvasHelperPromptAndSave}
+        onLoadCanvasPrompt={handleLoadCanvasPromptAndSave}
         isCanvasPromptActive={isCanvasPromptActive}
         isKeyLocked={!!currentChatSettings.lockedApiKey}
         defaultModelId={appSettings.modelId}
@@ -342,7 +346,7 @@ const App: React.FC = () => {
         onToggleUrlContext={toggleUrlContext}
         onClearChat={handleClearCurrentChat}
         onOpenSettings={() => setIsSettingsModalOpen(true)}
-        onToggleCanvasPrompt={handleLoadCanvasHelperPromptAndSave}
+        onToggleCanvasPrompt={handleLoadCanvasPromptAndSave}
         onTogglePinCurrentSession={handleTogglePinCurrentSession}
         onRetryLastTurn={handleRetryLastTurn}
         onEditLastUserMessage={handleEditLastUserMessage}

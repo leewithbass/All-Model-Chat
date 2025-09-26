@@ -2,9 +2,15 @@ export const DEFAULT_MODEL_ID = 'gemini-2.5-pro';
 
 export const TAB_CYCLE_MODELS: string[] = [
     'gemini-2.5-pro',
-    'gemini-2.5-flash',
-    'gemini-2.5-flash-lite',
+    'models/gemini-flash-latest',
+    'models/gemini-flash-lite-latest',
 ];
+
+export const THINKING_BUDGET_RANGES: { [key: string]: { min: number; max: number } } = {
+    'models/gemini-flash-latest': { min: 1, max: 24576 },
+    'gemini-2.5-pro': { min: 128, max: 32768 },
+    'models/gemini-flash-lite-latest': { min: 512, max: 24576 },
+};
 
 export const DEFAULT_TEMPERATURE = 1.0; 
 export const DEFAULT_TOP_P = 0.95; 
@@ -17,9 +23,9 @@ export const DEFAULT_TRANSCRIPTION_THINKING_ENABLED = false;
 
 export const AVAILABLE_TRANSCRIPTION_MODELS: { id: string; name: string }[] = [
     { id: 'qwen-asr', name: 'Qwen ASR (Default)' },
-    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+    { id: 'models/gemini-flash-latest', name: 'Gemini 2.5 Flash' },
     { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (Higher Quality)' },
-    { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite (Fastest)' },
+    { id: 'models/gemini-flash-lite-latest', name: 'Gemini 2.5 Flash Lite (Fastest)' },
 ];
 
 export const AVAILABLE_TRANSCRIPTION_LANGUAGES: { id: string, name: string }[] = [
