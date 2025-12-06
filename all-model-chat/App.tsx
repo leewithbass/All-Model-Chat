@@ -149,8 +149,10 @@ const App: React.FC = () => {
   }, []);
   
   const handleSaveSettings = (newSettings: AppSettings) => {
+    console.log('[Debug] handleSaveSettings called with:', newSettings);
     setAppSettings(newSettings);
     if (activeSessionId && setCurrentChatSettings) {
+      console.log('[Debug] Updating current chat settings. Safety settings in newSettings:', newSettings.safetySettings);
       setCurrentChatSettings(prevChatSettings => ({
         ...prevChatSettings,
         temperature: newSettings.temperature,
@@ -161,6 +163,7 @@ const App: React.FC = () => {
         thinkingBudget: newSettings.thinkingBudget,
         thinkingLevel: newSettings.thinkingLevel,
         lockedApiKey: null,
+        safetySettings: newSettings.safetySettings,
       }));
     }
   };
